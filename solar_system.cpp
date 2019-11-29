@@ -53,6 +53,9 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
       vy(i) = vy(i-1) + ay*dt;
       x(i) = x(i-1) + vx(i-1)*dt;
       y(i) = y(i-1) + vy(i-1)*dt;
+
+      kin_en(i) = 0.5*red_earth*(vx(i)*vx(i)+vy(i)*vy(i));
+      pot_en(i) = -GM*red_earth/sqrt(x(i)*x(i)+y(i)*y(i));
     }
     //write results to file for analysis
     std::string fileout = "Orbit_euler.txt";
@@ -86,6 +89,9 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
       y(i) = y(i-1) + dt*vy(i-1) + dt*dt*ay_prev/2;
       ax_prev = ax_new;
       ay_prev = ay_new;
+
+      kin_en(i) = 0.5*red_earth*(vx(i)*vx(i)+vy(i)*vy(i));
+      pot_en(i) = -GM*red_earth/sqrt(x(i)*x(i)+y(i)*y(i));
     }
     //write results to file for analysis
     std::string fileout = "Orbit_verlet.txt";
