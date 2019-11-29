@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-data = np.loadtxt("Orbit.txt")
+data = np.loadtxt("Orbit_verlet.txt")
 sorted_data = np.transpose(data)
 
 x = sorted_data[0]
