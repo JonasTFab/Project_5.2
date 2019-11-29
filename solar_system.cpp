@@ -72,7 +72,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
     double ax_new, ay_new;
     double ax_prev,ay_prev;
     double r0 = sqrt(x(0)*x(0) + y(0)*y(0));
-    double a0 = GM / (r*r);
+    double a0 = GM / (r0*r0);
     ax_prev = -a0*x(0);
     ay_prev = -a0*y(0);
     for (int i=1; i<n; i++){
