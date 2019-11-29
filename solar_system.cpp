@@ -15,7 +15,7 @@
 //mpicxx  -o main_mpi.x  main.cpp -std=c++11
 //mpiexec -n 2 ./main_mpi.x
 
-std::ofstream ofile
+std::ofstream ofile;
 double const pi = 3.14159265359;
 double const M_sun = 2*pow(10,30);        // in kilograms
 double const M_earth = 6*pow(10,24);      // in kilograms
@@ -42,7 +42,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
   arma::Col <double> kin_en = arma::vec(n); kin_en(0) = 0.5*red_earth*(vx(0)*vx(0)+vy(0)*vy(0));
   arma::Col <double> pot_en = arma::vec(n); pot_en(0) = -GM*red_earth/sqrt(x(0)*x(0)+y(0)*y(0));
 
-  if (method == 'euler'){
+  if (method == "euler"){
     //Solving ode using forward euler
     for (int i=1; i<n; i++){
       r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1));
@@ -67,17 +67,25 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
     }
   }
 
-  else if (method == 'verlet'){
+  else if (method == "verlet"){
     //Solving ode using forward euler
+    double ax_new, ay_new;
+    double ax_prev,ay_prev;
+    double r0 = sqrt(x(0)*x(0) + y(0)*y(0));
+    double a0 = GM / (r*r);
+    ax_prev = -a0*x(0);
+    ay_prev = -a0*y(0);
     for (int i=1; i<n; i++){
       r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1));
       a = GM / (r*r);
-      ax = -a*x(i-1);
-      ay = -a*y(i-1);
-      vx(i) = vx(i-1) + ax*dt;
-      vy(i) = vy(i-1) + ay*dt;
-      x(i) = x(i-1) + vx(i-1)*dt;
-      y(i) = y(i-1) + vy(i-1)*dt;
+      ax_new = -a*x(i-1);
+      ay_new = -a*y(i-1);
+      vx(i) = vx(i-1)+dt/2*(ax_new + ax_prev);
+      vy(i) = vy(i-1)+dt/2*(ay_new + ay_prev);
+      x(i) = x(i-1) + dt*vx(i-1) + dt*dt*ax_prev/2;
+      y(i) = y(i-1) + dt*vy(i-1) + dt*dt*ay_prev/2;
+      ax_prev = ax_new;
+      ay_prev = ay_new;
     }
     //write results to file for analysis
     std::string fileout = "Orbit_verlet.txt";
