@@ -6,13 +6,14 @@
 #include <sstream>
 #include <string>
 //#include "mpi.h"
+//#include "orbit.h"
 
 //For debugging:
 // compile with: g++ solar_system.cpp -o main1 -larmadillo -llapack -lblas
 // execute with ./main1
 
 //For paralellization
-//mpicxx  -o main_mpi.x  main.cpp -std=c++11
+//mpicxx  -o main_mpi.x  solar_system.cpp -std=c++11
 //mpiexec -n 2 ./main_mpi.x
 
 std::ofstream ofile;
@@ -23,7 +24,7 @@ double const sun_rad = 0.00465047;        // in AU
 
 
 void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx,
-            arma::Col <double> &vy, std::string method){
+            arma::Col <double> &vy, std::string method, double mass){
   double a,r,ax,ay;
   double GM = 4*pi*pi;
 
@@ -37,10 +38,10 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
     t(i)=i*dt;
   }
 
-  double red_earth = M_earth/M_sun;
+  double red_mass = mass/M_sun;
   //set up vectors containing potential and kinetic energy
-  arma::Col <double> kin_en = arma::vec(n); kin_en(0) = 0.5*red_earth*(vx(0)*vx(0)+vy(0)*vy(0));
-  arma::Col <double> pot_en = arma::vec(n); pot_en(0) = -GM*red_earth/sqrt(x(0)*x(0)+y(0)*y(0));
+  arma::Col <double> kin_en = arma::vec(n); kin_en(0) = 0.5*red_mass*(vx(0)*vx(0)+vy(0)*vy(0));
+  arma::Col <double> pot_en = arma::vec(n); pot_en(0) = -GM*red_mass/sqrt(x(0)*x(0)+y(0)*y(0));
 
   if (method == "euler"){
     //Solving ode using forward Euler
@@ -54,8 +55,8 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
       x(i) = x(i-1) + vx(i-1)*dt;
       y(i) = y(i-1) + vy(i-1)*dt;
 
-      kin_en(i) = 0.5*red_earth*(vx(i)*vx(i)+vy(i)*vy(i));
-      pot_en(i) = -GM*red_earth/sqrt(x(i)*x(i)+y(i)*y(i));
+      kin_en(i) = 0.5*red_mass*(vx(i)*vx(i)+vy(i)*vy(i));
+      pot_en(i) = -GM*red_mass/sqrt(x(i)*x(i)+y(i)*y(i));
     }
     //write results to file for analysis
     std::string fileout = "Orbit_euler.txt";
@@ -94,8 +95,8 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
       ay_prev = ay_new;
 
 
-      kin_en(i) = 0.5*red_earth*(vx(i)*vx(i)+vy(i)*vy(i));
-      pot_en(i) = -GM*red_earth/sqrt(x(i)*x(i)+y(i)*y(i));
+      kin_en(i) = 0.5*red_mass*(vx(i)*vx(i)+vy(i)*vy(i));
+      pot_en(i) = -GM*red_mass/sqrt(x(i)*x(i)+y(i)*y(i));
     }
     //write results to file for analysis
     std::string fileout = "Orbit_verlet.txt";
@@ -109,6 +110,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
       ofile << std::setw(15) << pot_en(i) << "\n";
     }
   }
+
   else{
     std::cout << "You must choose either (euler) or (verlet)\n";
     exit(1);
@@ -120,15 +122,20 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &vx
 
 
 int main(int argc, char* argv[]){
-  int len = 100;
+
+  std::cout << "hello world" << std::endl;
+
+  int len = 10000;
   std::string method = argv[1];
   arma::Col <double> x = arma::vec(len); x(0)=1;
   arma::Col <double> y = arma::vec(len); y(0)=0;
   arma::Col <double> vx = arma::vec(len); vx(0)=0;
-  arma::Col <double> vy = arma::vec(len); vy(0)=5;//sqrt(4*pi*pi);
+  arma::Col <double> vy = arma::vec(len); vy(0)=sqrt(4*pi*pi);
 
 
-  planet(x,y,vx,vy,method);
+  //planet(x,y,vx,vy,method,M_earth);
+
+  //Orbit earth(x,y,vx,vy,method,M_earth);
 
 
 

@@ -120,6 +120,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
       ofile << std::setw(15) << pot_en(i) << "\n";
     }
   }
+  
   else{
     std::cout << "You must choose either (euler) or (verlet)\n";
     exit(1);
@@ -131,7 +132,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 
 
 int main(int argc, char* argv[]){
-  int len = 10000;
+  int len = 100000;
   std::string method = argv[1];
   arma::Col <double> x = arma::vec(len); x(0)=1;
   arma::Col <double> y = arma::vec(len); y(0)=0;
