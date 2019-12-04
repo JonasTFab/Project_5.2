@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <string>
+#include <ctime>
 //#include "mpi.h"
 //#include "orbit.h"
 
@@ -15,6 +16,7 @@
 //For paralellization
 //mpicxx  -o main_mpi.x  main.cpp -std=c++11
 //mpiexec -n 2 ./main_mpi.x
+
 
 std::ofstream ofile;
 double const pi = 3.14159265359;
@@ -28,6 +30,9 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
             arma::Col <double> &vz, std::string method, double mass){
   double a,r,ax,ay,az;
   double GM = 4*pi*pi;
+
+  std::clock_t start;
+  double duration;
 
   int n = x.n_elem;
 
@@ -46,6 +51,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 
   if (method == "euler"){
     //Solving ode using forward Euler
+    start = std::clock();
     for (int i=1; i<n; i++){
       r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
       a = GM / (r*r);
@@ -62,6 +68,10 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
       kin_en(i) = 0.5*red_mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
       pot_en(i) = -GM*red_mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
     }
+
+
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout<<"Euler time with "<< n << " iterations:" << duration <<'\n';
     //write results to file for analysis
     std::string fileout = "Orbit_euler.txt";
     ofile.open(fileout);
@@ -85,6 +95,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
     ax_prev = -a0*x(0);
     ay_prev = -a0*y(0);
     az_prev = -a0*z(0);
+    start = std::clock();
     for (int i=1; i<n; i++){
       x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
       y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
@@ -108,6 +119,8 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
       kin_en(i) = 0.5*red_mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
       pot_en(i) = -GM*red_mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
     }
+    duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    std::cout<<"Verlet time with "<< n << " iterations:" << duration <<'\n';
     //write results to file for analysis
     std::string fileout = "Orbit_verlet.txt";
     ofile.open(fileout);
@@ -135,13 +148,13 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 int main(int argc, char* argv[]){
 
 
-  int len = 100000;
   std::string method = argv[1];
+  int len = atoi(argv[2]);
   arma::Col <double> x = arma::vec(len); x(0)=1;
   arma::Col <double> y = arma::vec(len); y(0)=0;
-  arma::Col <double> z = arma::vec(len); z(0)=-0.5;
+  arma::Col <double> z = arma::vec(len); z(0)=-0.0;
   arma::Col <double> vx = arma::vec(len); vx(0)=0;
-  arma::Col <double> vy = arma::vec(len); vy(0)=5;
+  arma::Col <double> vy = arma::vec(len); vy(0)= 2*pi;
   arma::Col <double> vz = arma::vec(len); vz(0)=0;
 
 
