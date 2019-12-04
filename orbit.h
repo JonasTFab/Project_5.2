@@ -7,6 +7,14 @@
 #include <armadillo>
 
 
+class test{
+  double a;
+};
+
+
+
+
+/*
 class Orbit{
 public:
   Orbit();
@@ -16,5 +24,6 @@ public:
   int n;
 
 };
+*/
 
 //#endif

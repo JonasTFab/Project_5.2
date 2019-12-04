@@ -1,5 +1,6 @@
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 
 def plot(file,method):
@@ -8,9 +9,10 @@ def plot(file,method):
 
     x = sorted_data[0]
     y = sorted_data[1]
-    time = sorted_data[2]
-    kin_en = sorted_data[3]
-    pot_en = sorted_data[4]
+    z = sorted_data[2]
+    time = sorted_data[3]
+    kin_en = sorted_data[4]
+    pot_en = sorted_data[5]
 
     if method == "euler":
         col = "black"
@@ -20,25 +22,24 @@ def plot(file,method):
         meth = "Verlet"
 
 
-    plt.figure(1)
-    plt.title("Orbit in %.1f year" % (time[-1]))
-    plt.plot(x[0],y[0],"o",label="Earth (%s)"%meth,color=col)
-    plt.plot(x,y,label="Earth orbit (%s)"%meth,color=col)
-    plt.xlabel("x (AU)"); plt.ylabel("y (AU)")
-    plt.legend()
+    ax.text2D(0.4,1,"Orbit in %.1f year" % (time[-1]),transform=ax.transAxes)
+    ax.scatter(x[0],y[0],z[0],"o",label="Earth (%s)"%meth,color=col)
+    ax.plot(x,y,z,label="Earth path (%s)"%meth,color=col)
+    ax.set_xlabel("x (AU)"); ax.set_ylabel("y (AU)"); ax.set_zlabel("z (AU)")
 
-    plt.figure(2)
-    plt.plot(time,kin_en,"--",label="Kinetic energy (%s)"%meth,color=col)
-    plt.plot(time,pot_en,"-.",label="Potential energy (%s)"%meth,color=col)
-    plt.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
-    plt.xlabel("t (year)"); plt.ylabel("Energy")
-    plt.legend()
+    ax2.plot(time,kin_en,"--",label="Kinetic energy (%s)"%meth,color=col)
+    ax2.plot(time,pot_en,"-.",label="Potential energy (%s)"%meth,color=col)
+    ax2.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
+    ax2.set_xlabel("t (year)"); ax2.set_ylabel("Energy")
 
 
+fig = plt.figure(1)
+ax = fig.gca(projection="3d")
+fig2 = plt.figure(2)
+ax2 = fig2.add_subplot(111); ax2.grid()
 euler_plot = plot("Orbit_euler.txt","euler")
 verlet_plot = plot("Orbit_verlet.txt","verlet")
 
-plt.figure(1); plt.grid()
-plt.plot(0,0,"o",label="Sun",color="yellow"); plt.legend()
-plt.figure(2); plt.grid()
+ax.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
+ax.legend(); ax2.legend()
 plt.show()

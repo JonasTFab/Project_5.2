@@ -40,6 +40,6 @@ ax2 = fig2.add_subplot(111); ax2.grid()
 euler_plot = plot("Orbit_euler.txt","euler")
 verlet_plot = plot("Orbit_verlet.txt","verlet")
 
-ax.scatter(0,0,0,"O",label="Sun",color="orange")
+ax.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
 ax.legend(); ax2.legend()
 plt.show()
