@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-
+import matplotlib.ticker as mtick
 
 def plot(file,method):
     data = np.loadtxt(file)
@@ -22,15 +22,22 @@ def plot(file,method):
         meth = "Verlet"
 
 
-    ax.text2D(0.4,1,"Orbit in %.1f year" % (time[-1]),transform=ax.transAxes)
-    ax.scatter(x[0],y[0],z[0],"o",label="Earth (%s)"%meth,color=col)
-    ax.plot(x,y,z,label="Earth path (%s)"%meth,color=col)
+    ax.text2D(0.4,1,"%.1f year orbit" % (time[-1]),fontsize = 18,transform=ax.transAxes)
+    #ax.scatter(x[0],y[0],z[0],"o",color=col)
+    ax.plot(x,y,z,label="Orbit (%s)"%meth,color=col)
     ax.set_xlabel("x (AU)"); ax.set_ylabel("y (AU)"); ax.set_zlabel("z (AU)")
 
-    ax2.plot(time,kin_en,"--",label="Kinetic energy (%s)"%meth,color=col)
-    ax2.plot(time,pot_en,"-.",label="Potential energy (%s)"%meth,color=col)
-    ax2.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
-    ax2.set_xlabel("t (year)"); ax2.set_ylabel("Energy")
+    ax2 = plt.subplot(2,1,1)
+    hfont = {'fontname':'Times'}
+    plt.title('Kinetic and Potential Energy', fontsize = 15,**hfont)
+    ax2.plot(time,10**6*kin_en,"-",label="%s"%meth,color=col)
+    ax2.set_ylabel("Kinetic Energy [$\mu$]",fontsize = 12,**hfont)
+    ax2 = plt.subplot(2,1,2)
+    ax2.plot(time,10**6*pot_en,"-",label="%s"%meth,color=col)
+
+    #ax2.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
+    ax2.set_xlabel("t (year)",fontsize = 12); ax2.set_ylabel("Potential Energy [$\mu$]",fontsize = 12,**hfont)
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.3),ncol = 5,fancybox=True,fontsize=10)
 
 
 fig = plt.figure(1)
