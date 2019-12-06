@@ -23,13 +23,12 @@ double const pi = 3.14159265359;
 double const M_sun = 2*pow(10,30);        // in kilograms
 double const M_earth = 6*pow(10,24);      // in kilograms
 double const sun_rad = 0.00465047;        // in AU
-
+double const GM = 4*pi*pi;
 
 void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
             arma::Col <double> &vx, arma::Col <double> &vy,
             arma::Col <double> &vz, std::string method, double mass){
   double a,r,ax,ay,az;
-  double GM = 4*pi*pi;
 
   std::clock_t start;
   double duration;
@@ -38,7 +37,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 
   arma::Col <double> t = arma::vec(n);
   double tmin = 0;
-  double tmax = 5;
+  double tmax = 200;
   double dt = (tmax-tmin)/n;
   for (int i=0; i<n; i++){
     t(i)=i*dt;
@@ -149,12 +148,15 @@ int main(int argc, char* argv[]){
 
 
   std::string method = argv[1];
-  int len = atoi(argv[2]);
+  int len = atoi(argv[2]);//number of integration points
+  double int_vel = atof(argv[3]);//initial velocity
+  double esc_vel = sqrt(2*GM);
+  std::cout << esc_vel << "\n";
   arma::Col <double> x = arma::vec(len); x(0)=1;
   arma::Col <double> y = arma::vec(len); y(0)=0;
   arma::Col <double> z = arma::vec(len); z(0)=-0.0;
   arma::Col <double> vx = arma::vec(len); vx(0)=0;
-  arma::Col <double> vy = arma::vec(len); vy(0)= 2*pi;
+  arma::Col <double> vy = arma::vec(len); vy(0)= esc_vel;
   arma::Col <double> vz = arma::vec(len); vz(0)=0;
 
 

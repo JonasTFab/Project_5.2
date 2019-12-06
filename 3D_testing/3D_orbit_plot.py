@@ -27,7 +27,7 @@ def plot(file,method):
     ax.plot(x,y,z,label="Orbit (%s)"%meth,color=col)
     ax.set_xlabel("x (AU)"); ax.set_ylabel("y (AU)"); ax.set_zlabel("z (AU)")
 
-    ax2 = plt.subplot(2,1,1)
+    """ax2 = plt.subplot(2,1,1)
     hfont = {'fontname':'Times'}
     plt.title('Kinetic and Potential Energy', fontsize = 15,**hfont)
     ax2.plot(time,10**6*kin_en,"-",label="%s"%meth,color=col)
@@ -37,7 +37,7 @@ def plot(file,method):
 
     #ax2.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
     ax2.set_xlabel("t (year)",fontsize = 12); ax2.set_ylabel("Potential Energy [$\mu$]",fontsize = 12,**hfont)
-    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.3),ncol = 5,fancybox=True,fontsize=10)
+    ax2.legend(loc='upper center', bbox_to_anchor=(0.5, -0.3),ncol = 5,fancybox=True,fontsize=10)"""
 
 
 fig = plt.figure(1)
