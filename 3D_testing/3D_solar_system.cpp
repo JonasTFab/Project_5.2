@@ -89,7 +89,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
     double ax_new,ay_new,az_new,ax_prev,ay_prev,az_prev;
     double vx_half,vy_half,vz_half;
     double r0 = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
-    double a0 = GM / (r0*r0);//pow(r0,2);
+    double a0 = GM / pow(r0,beta+1);
     ax_prev = -a0*x(0);
     ay_prev = -a0*y(0);
     az_prev = -a0*z(0);
@@ -100,7 +100,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
       z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
 
       r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
-      a = GM / (r*r);//pow(r,2);
+      a = GM / pow(r,beta+1);
       ax_new = -a * x(i);
       ay_new = -a * y(i);
       az_new = -a * z(i);
@@ -151,16 +151,17 @@ int main(int argc, char* argv[]){
   double esc_vel = sqrt(2*GM);
   std::cout << esc_vel << "\n";
   arma::Col <double> x = arma::vec(len); x(0)=1.0;
-  arma::Col <double> y = arma::vec(len); y(0)=0;
-  arma::Col <double> z = arma::vec(len); z(0)=-0.0;
-  arma::Col <double> vx = arma::vec(len); vx(0)=0;
+  arma::Col <double> y = arma::vec(len); y(0)= 0.0;
+  arma::Col <double> z = arma::vec(len); z(0)= 0.0;
+  arma::Col <double> vx = arma::vec(len); vx(0)=0.0;
   arma::Col <double> vy = arma::vec(len); vy(0)= int_vel;
   arma::Col <double> vz = arma::vec(len); vz(0)=0.0;
 
   std::string fileout = "Orbit_diff_r_exp.txt";
   ofile.open(fileout);
-  for (double b = 2; b <= beta; b += 0.2){
-  planet(x,y,z,vx,vy,vz,method,M_earth,b,orbital_time);
+  for (double b = 2; b <= beta+0.1; b += 0.2){
+      std::cout << b << std::endl;
+      planet(x,y,z,vx,vy,vz,method,M_earth,b,orbital_time);
   }
   ofile.close();
 

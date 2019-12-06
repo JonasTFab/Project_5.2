@@ -55,9 +55,10 @@ plt.show()"""
 def plot_d(filename):
     data = np.loadtxt(filename)
     sorted_data = np.transpose(data)
-    colors = ["r","g","b","c","magenta"]
-    cut = int(len(sorted_data[0])/5)
-    for i in range(0,5):
+    colors = ["r","g","b","c","magenta","gold"]
+    beta = [2,2.2,2.4,2.6,2.8,3]
+    cut = int(len(sorted_data[0])/6)
+    for i in range(0,6):
         f_index = i*cut
         l_index = (i+1)*cut - 1
         x = sorted_data[0][f_index:l_index]
@@ -67,7 +68,7 @@ def plot_d(filename):
         kin_en = sorted_data[4][f_index:l_index]
         pot_en = sorted_data[5][f_index:l_index]
         col = colors[i]
-        ax3.plot(x,y,z,label="Orbit",color=col)
+        ax3.plot(x,y,z,label=beta[i],color=col)
     ax3.set_xlabel("x (AU)"); ax3.set_ylabel("y (AU)"); ax3.set_zlabel("z (AU)")
     ax3.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
     ax3.legend();
