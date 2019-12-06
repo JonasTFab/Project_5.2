@@ -6,7 +6,6 @@
 #include <sstream>
 #include <string>
 //#include "mpi.h"
-#include "orbit.h"
 
 //For debugging:
 // compile with: g++ solar_system.cpp -o main1 -larmadillo -llapack -lblas
@@ -21,19 +20,77 @@ double const pi = 3.14159265359;
 double const M_sun = 2*pow(10,30);        // in kilograms
 double const M_earth = 6*pow(10,24);      // in kilograms
 double const sun_rad = 0.00465047;        // in AU
+double const GM = 4*pi*pi;
+
+/*
+class object {
+private:
+  double ax_new,ay_new,az_new,ax_prev,ay_prev,az_prev;
+  double vx_half,vy_half,vz_half,a;
+public:
+  //double x0,y0,z0,vx0,vy0,vz0,mass;
+  double mass;
+
+  int N = 10000;
+  arma::Col <double> x = arma::vec(N);
+  arma::Col <double> y = arma::vec(N);
+  arma::Col <double> z = arma::vec(N);
+  arma::Col <double> vx = arma::vec(N);
+  arma::Col <double> vy = arma::vec(N);
+  arma::Col <double> vz = arma::vec(N);
+
+  // initialize
+  object(){
+    mass = 1;
+    x(0) = 1;
+    y(0) = 0;
+    z(0) = 0;
+    vx(0) = 0;
+    vy(0) = 1;
+    vz(0) = 0;
+  }
+  object(double x0,double y0,double z0,double vx0,double vy0,double vz0,double M)
+  {
+    mass = M;
+    x(0) = x0;
+    y(0) = y0;
+    z(0) = z0;
+    vx(0) = vx0;
+    vy(0) = vy0;
+    vz(0) = vz0;
+  }
+
+  // functions
+  double object::sun_orbit(object)
+  {
+    for (int i=1; i<N; i++){
+      r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
+      a = GM / (r*r);
+      ax = -a*x(i-1);
+      ay = -a*y(i-1);
+      az = -a*z(i-1);
+      vx(i) = vx(i-1) + ax*dt;
+      vy(i) = vy(i-1) + ay*dt;
+      vz(i) = vz(i-1) + az*dt;
+      x(i) = x(i-1) + vx(i-1)*dt;
+      y(i) = y(i-1) + vy(i-1)*dt;
+      z(i) = z(i-1) + vz(i-1)*dt;
+  }
+
+};
+*/
 
 
 void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
             arma::Col <double> &vx, arma::Col <double> &vy,
             arma::Col <double> &vz, std::string method, double mass){
   double a,r,ax,ay,az;
-  double GM = 4*pi*pi;
 
   int n = x.n_elem;
 
   arma::Col <double> t = arma::vec(n);
   double tmin = 0;
-  double tmax = 5;
+  double tmax = 20;
   double dt = (tmax-tmin)/n;
   for (int i=0; i<n; i++){
     t(i)=i*dt;
@@ -135,20 +192,26 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 int main(int argc, char* argv[]){
 
 
-  int len = 100000;
   std::string method = argv[1];
+  int len = atoi(argv[2]);//number of integration points
+  double int_vel = atof(argv[3]);//initial velocity
+  double esc_vel = sqrt(2*GM);
+  std::cout << esc_vel << "\n";
   arma::Col <double> x = arma::vec(len); x(0)=1;
   arma::Col <double> y = arma::vec(len); y(0)=0;
-  arma::Col <double> z = arma::vec(len); z(0)=-0.5;
+  arma::Col <double> z = arma::vec(len); z(0)=0;
   arma::Col <double> vx = arma::vec(len); vx(0)=0;
-  arma::Col <double> vy = arma::vec(len); vy(0)=5;
+  arma::Col <double> vy = arma::vec(len); vy(0)=int_vel;
   arma::Col <double> vz = arma::vec(len); vz(0)=0;
 
 
-  //planet(x,y,z,vx,vy,vz,method,M_earth);
+  planet(x,y,z,vx,vy,vz,method,M_earth);
 
-  orbit::test var;
-
+  /*
+  object earth;
+  earth.N = 10;
+  std::cout << earth.N << std::endl;
+  */
 
   return 0;
 } // end of function main()

@@ -37,7 +37,7 @@ fig = plt.figure(1)
 ax = fig.gca(projection="3d")
 fig2 = plt.figure(2)
 ax2 = fig2.add_subplot(111); ax2.grid()
-euler_plot = plot("Orbit_euler.txt","euler")
+#euler_plot = plot("Orbit_euler.txt","euler")
 verlet_plot = plot("Orbit_verlet.txt","verlet")
 
 ax.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
