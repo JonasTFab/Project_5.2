@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.ticker as mtick
+plt.rcParams["font.family"] = "times"
 
 def plot(file,method):
     data = np.loadtxt(file)
@@ -68,12 +69,13 @@ def plot_d(filename):
         kin_en = sorted_data[4][f_index:l_index]
         pot_en = sorted_data[5][f_index:l_index]
         col = colors[i]
-        ax3.plot(x,y,z,label=beta[i],color=col)
+        ax3.plot(x,y,z,label=r'$\beta$ = %.1f'%beta[i],color=col)
     ax3.set_xlabel("x (AU)"); ax3.set_ylabel("y (AU)"); ax3.set_zlabel("z (AU)")
     ax3.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
-    ax3.legend();
+    ax3.legend(loc='upper center', bbox_to_anchor=(0.5, 0.0),ncol = 5,fancybox=True,fontsize=10)
     plt.show()
 
 fig3 = plt.figure(3)
 ax3 = fig3.gca(projection="3d")
+plt.title('Orbits for differing gravitational force',fontsize = 14)
 diff_r_orbits = plot_d("Orbit_diff_r_exp.txt")
