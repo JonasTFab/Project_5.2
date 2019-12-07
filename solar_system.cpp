@@ -22,46 +22,54 @@ double const M_earth = 6*pow(10,24);      // in kilograms
 double const sun_rad = 0.00465047;        // in AU
 double const GM = 4*pi*pi;
 
-/*
+
 class object {
 private:
-  double ax_new,ay_new,az_new,ax_prev,ay_prev,az_prev;
-  double vx_half,vy_half,vz_half,a;
+  double a, r, ax, ay, az, dt;
+  double ax_new, ay_new, az_new, ax_prev, ay_prev, az_prev;
+  double vx_half, vy_half, vz_half;
 public:
   //double x0,y0,z0,vx0,vy0,vz0,mass;
   double mass;
 
-  int N = 10000;
-  arma::Col <double> x = arma::vec(N);
-  arma::Col <double> y = arma::vec(N);
-  arma::Col <double> z = arma::vec(N);
-  arma::Col <double> vx = arma::vec(N);
-  arma::Col <double> vy = arma::vec(N);
-  arma::Col <double> vz = arma::vec(N);
+  int N;
+  double tmax = 1;
+  arma::Col <double> x;
+  arma::Col <double> y;
+  arma::Col <double> z;
+  arma::Col <double> vx;
+  arma::Col <double> vy;
+  arma::Col <double> vz;
+  arma::Col <double> kin_en;
+  arma::Col <double> pot_en;
 
   // initialize
-  object(){
-    mass = 1;
-    x(0) = 1;
-    y(0) = 0;
-    z(0) = 0;
-    vx(0) = 0;
-    vy(0) = 1;
-    vz(0) = 0;
-  }
-  object(double x0,double y0,double z0,double vx0,double vy0,double vz0,double M)
+  object(){}
+  object(double x0,double y0,double z0,double vx0,double vy0,double vz0,double M, int len)
   {
-    mass = M;
+    N = len;
+    x = arma::zeros(N);
+    y = arma::zeros(N);
+    z = arma::zeros(N);
+    vx = arma::zeros(N);
+    vy = arma::zeros(N);
+    vz = arma::zeros(N);
+    kin_en = arma::zeros(N);
+    pot_en = arma::zeros(N);
+
+    mass = M/M_sun;
     x(0) = x0;
     y(0) = y0;
     z(0) = z0;
     vx(0) = vx0;
     vy(0) = vy0;
     vz(0) = vz0;
+    dt = tmax/N;
+
   }
 
   // functions
-  double object::sun_orbit(object)
+  void velocity_verlet(object)
   {
     for (int i=1; i<N; i++){
       r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
@@ -75,10 +83,60 @@ public:
       x(i) = x(i-1) + vx(i-1)*dt;
       y(i) = y(i-1) + vy(i-1)*dt;
       z(i) = z(i-1) + vz(i-1)*dt;
+    }
+  }
+
+  void euler(object)
+  {
+    for (int i=1; i<N; i++){
+      r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
+      a = GM / (r*r);
+      ax = -a*x(i-1);
+      ay = -a*y(i-1);
+      az = -a*z(i-1);
+      vx(i) = vx(i-1) + ax*dt;
+      vy(i) = vy(i-1) + ay*dt;
+      vz(i) = vz(i-1) + az*dt;
+      x(i) = x(i-1) + vx(i-1)*dt;
+      y(i) = y(i-1) + vy(i-1)*dt;
+      z(i) = z(i-1) + vz(i-1)*dt;
+    }
+  }
+
+  void kinetic_energy(object)
+  {
+    for (int i; i<N; i++){
+      kin_en(i) = 0.5*mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
+    }
+  }
+
+  void potential_energy(object)
+  {
+
+    for (int i; i<N; i++){
+      pot_en(i) = -GM*mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
+    }
+  }
+
+  void write_to_file(object, std::string filename)
+  {
+    ofile.open(filename);
+    ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
+
+    for (int i=0; i<N; i++){
+      ofile << std::setw(15) << x(i);
+      ofile << std::setw(15) << y(i);
+      ofile << std::setw(15) << z(i);
+      ofile << std::setw(15) << dt*i;
+      ofile << std::setw(15) << kin_en(i);
+      ofile << std::setw(15) << pot_en(i) << "\n";
+    }
+    ofile.close();
+
   }
 
 };
-*/
+
 
 
 void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
@@ -138,7 +196,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
     double ax_new,ay_new,az_new,ax_prev,ay_prev,az_prev;
     double vx_half,vy_half,vz_half;
     double r0 = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
-    double a0 = GM / (r0*r0);
+    double a0 = GM / (r0*r0*r0);
     ax_prev = -a0*x(0);
     ay_prev = -a0*y(0);
     az_prev = -a0*z(0);
@@ -191,27 +249,31 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 
 int main(int argc, char* argv[]){
 
-
   std::string method = argv[1];
   int len = atoi(argv[2]);//number of integration points
   double int_vel = atof(argv[3]);//initial velocity
   double esc_vel = sqrt(2*GM);
-  std::cout << esc_vel << "\n";
-  arma::Col <double> x = arma::vec(len); x(0)=1;
-  arma::Col <double> y = arma::vec(len); y(0)=0;
-  arma::Col <double> z = arma::vec(len); z(0)=0;
-  arma::Col <double> vx = arma::vec(len); vx(0)=0;
-  arma::Col <double> vy = arma::vec(len); vy(0)=int_vel;
-  arma::Col <double> vz = arma::vec(len); vz(0)=0;
+
+  //std::cout << esc_vel << "\n";
+  //arma::Col <double> x = arma::vec(len); x(0)=1;
+  //arma::Col <double> y = arma::vec(len); y(0)=0;
+  //arma::Col <double> z = arma::vec(len); z(0)=0;
+  //arma::Col <double> vx = arma::vec(len); vx(0)=0;
+  //arma::Col <double> vy = arma::vec(len); vy(0)=int_vel;
+  //arma::Col <double> vz = arma::vec(len); vz(0)=0;
+
+  //planet(x,y,z,vx,vy,vz,method,M_earth);
 
 
-  planet(x,y,z,vx,vy,vz,method,M_earth);
+  // object( x0, y0, z0, vx0, vy0, vz0, M )
+  // distance is given in AU and mass is given in kg
+  object earth(1,0,0,0,1,0,M_earth,len);
 
-  /*
-  object earth;
-  earth.N = 10;
-  std::cout << earth.N << std::endl;
-  */
+  earth.velocity_verlet(earth);
+  earth.kinetic_energy(earth);
+  earth.write_to_file(earth, "earth.txt");
+
+
 
   return 0;
 } // end of function main()
