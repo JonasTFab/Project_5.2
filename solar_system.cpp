@@ -160,7 +160,7 @@ class solar_system {
 private:
   int num_planets,N,nothing;
   double tot_mass,G,tot_momentum,com,r_com,dt;
-  double ax_prev,ay_prev,az_prev;
+  double ax_prev,ay_prev,az_prev,sum_forcex,sum_forcey,sum_forcez;
   arma::Col <double> pos,vel,mass;
   std::string word;
   std::list<std::string> planet_name;
@@ -172,6 +172,7 @@ public:
     T = 10;
     G = GM;                                           // divided by one sun mass
     num_planets=tot_mass=tot_momentum=0;
+    sum_forcex=sum_forcey=sum_forcez=0;
   }
 
 
@@ -281,19 +282,55 @@ public:
         for (int j=0; j<num_planets; j++){
           if (i==j) {nothing=0;}
           else{
-            ax_prev = -force(i,j)*pos(3*i)/mass(i);
-            ay_prev = -force(i,j)*pos(3*i+1)/mass(i);
-            az_prev = -force(i,j)*pos(3*i+2)/mass(i);
-            vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-force(i,j)*pos(3*i+2)/mass(i) + az_prev);
-
-            pos(3*i) = pos(3*i) + dt*vel(3*i) + 0.5*dt*dt*ax_prev;
-            pos(3*i+1) = pos(3*i+1) + dt*vel(3*i+1) + 0.5*dt*dt*ay_prev;
-            pos(3*i+2) = pos(3*i+2) + dt*vel(3*i+2) + 0.5*dt*dt*az_prev;
-
-            vel(3*i) = vel(3*i) + 0.5*dt*(-force(i,j)*pos(3*i)/mass(i) + ax_prev);
-            vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-force(i,j)*pos(3*i+1)/mass(i) + ay_prev);
+            sum_forcex += force(i,j) * (pos(3*i) - pos(3*j));
+            sum_forcey += force(i,j) * (pos(3*i+1) - pos(3*j+1));
+            sum_forcez += force(i,j) * (pos(3*i+2) - pos(3*j+2));
           }
         }
+
+          ax_prev = -sum_forcex/mass(i);
+          ay_prev = -sum_forcey/mass(i);
+          az_prev = -sum_forcez/mass(i);
+
+          pos(3*i) = pos(3*i) + dt*vel(3*i) + 0.5*dt*dt*ax_prev;
+          pos(3*i+1) = pos(3*i+1) + dt*vel(3*i+1) + 0.5*dt*dt*ay_prev;
+          pos(3*i+2) = pos(3*i+2) + dt*vel(3*i+2) + 0.5*dt*dt*az_prev;
+
+
+          sum_forcex=sum_forcey=sum_forcez=0;
+          for (int j=0; j<num_planets; j++){
+            if (i==j) {nothing=0;}
+            else{
+              sum_forcex += force(i,j) * (pos(3*i) - pos(3*j));
+              sum_forcey += force(i,j) * (pos(3*i+1) - pos(3*j+1));
+              sum_forcez += force(i,j) * (pos(3*i+2) - pos(3*j+2));
+            }
+          }
+
+          vel(3*i) = vel(3*i) + 0.5*dt*(-sum_forcex/mass(i) + ax_prev);
+          vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-sum_forcey/mass(i) + ay_prev);
+          vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-sum_forcez/mass(i) + az_prev);
+////////////////////////////////////////////////////////
+          /*for (int i=1; i<n; i++){
+            x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
+            y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
+            z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
+
+            r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
+            a = GM / (r*r*r);
+            ax_new = -a * x(i);
+            ay_new = -a * y(i);
+            az_new = -a * z(i);
+
+            vx(i) = vx(i-1) + 0.5*dt*(ax_new + ax_prev);
+            vy(i) = vy(i-1) + 0.5*dt*(ay_new + ay_prev);
+            vz(i) = vz(i-1) + 0.5*dt*(az_new + az_prev);
+
+            ax_prev = ax_new;
+            ay_prev = ay_new;
+            az_prev = az_new;*/
+
+          sum_forcex=sum_forcey=sum_forcez=0;
       }
 
       for (int k=0; k<num_planets; k++){
@@ -447,25 +484,24 @@ int main(int argc, char* argv[]){
   // distance is given in AU and mass is given in kg
   /* Positions and velocity data gathered from https://ssd.jpl.nasa.gov/horizons.cgi
    at A.D. 2019-Dec-09 00:00:00.0000 TDB */
-  object mercury(-3.985847784965280E-01,-8.678484206044013E-02,2.854818397850725E-02,6.808061022618487E-04,-2.615697349455290E-02, -2.200251411818960E-03,M_mercury,len);
-  object venus(6.140254422268607E-01,-3.889781916531376E-01,-4.077096546312043E-02,1.070185289465133E-02,1.700477808956028E-02,-3.842439888550384E-04,M_venus,len);
-  object mars(-1.485032517264654E+00, -6.306157101254950E-01, 2.322202328310920E-02,5.992165013982506E-03,-1.168365481307998E-02,-3.918498445436787E-04,M_mars,len);
-  object saturn(3.685089251558515E+00,-9.335591564910553E+00,1.562158057974095E-02,4.889009775915366E-03,2.032733431539527E-03,-2.295408335647753E-04,M_saturn,len);
+  //object mercury(-3.985847784965280E-01,-8.678484206044013E-02,2.854818397850725E-02,6.808061022618487E-04,-2.615697349455290E-02, -2.200251411818960E-03,M_mercury,len);
+  //object venus(6.140254422268607E-01,-3.889781916531376E-01,-4.077096546312043E-02,1.070185289465133E-02,1.700477808956028E-02,-3.842439888550384E-04,M_venus,len);
+  //object mars(-1.485032517264654E+00, -6.306157101254950E-01, 2.322202328310920E-02,5.992165013982506E-03,-1.168365481307998E-02,-3.918498445436787E-04,M_mars,len);
+  //object saturn(3.685089251558515E+00,-9.335591564910553E+00,1.562158057974095E-02,4.889009775915366E-03,2.032733431539527E-03,-2.295408335647753E-04,M_saturn,len);
   object jupiter(3.551315858851771E-01,-5.223858708443553E+00,1.375193093344411E-02,7.445397359016055E-03,8.688615308896841E-04,-1.701937692576648E-04,M_jupiter,len);
   object earth(2.328416719695888E-01, 9.570420225654582E-01,-4.193306777199945E-05,-1.699305780122259E-02,3.997104358502586E-03,-4.831893976607005E-07,M_earth,len);
-  object uranus(1.627777749498813E+01,1.130905239963674E+01,-1.688216806579894E-01,-2.265866949228651E-03,3.047569009304266E-03,4.052178469796985E-05,M_uranus,len);
-  object neptune(2.922766815589142E+01,6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
+  //object uranus(1.627777749498813E+01,1.130905239963674E+01,-1.688216806579894E-01,-2.265866949228651E-03,3.047569009304266E-03,4.052178469796985E-05,M_uranus,len);
+  //object neptune(2.922766815589142E+01,6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
   solar_system system(len);
-  std::cout << 6.618180582706258E-04 << std::endl;
   system.T = time;
-  system.add_planet(mercury,"Mercury");
-  system.add_planet(venus,"Venus");
+  //system.add_planet(mercury,"Mercury");
+  //system.add_planet(venus,"Venus");
   system.add_planet(earth, "Earth");
-  system.add_planet(mars,"Mars");
+  //system.add_planet(mars,"Mars");
   system.add_planet(jupiter, "Jupiter");
-  system.add_planet(saturn,"Saturn");
-  system.add_planet(uranus,"Uranus");
-  system.add_planet(neptune,"Neptune");
+  //system.add_planet(saturn,"Saturn");
+  //system.add_planet(uranus,"Uranus");
+  //system.add_planet(neptune,"Neptune");
   system.sun_included();
   system.solve();
 
