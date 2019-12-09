@@ -120,7 +120,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
     duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
     std::cout<<"Verlet time with "<< n << " iterations:" << duration <<'\n';
     //write results to file for analysis
-    /*ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
+    ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
     for (int i=0; i<n; i++){
       ofile << std::setw(15) << x(i);
       ofile << std::setw(15) << y(i);
@@ -128,7 +128,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
       ofile << std::setw(15) << t(i);
       ofile << std::setw(15) << kin_en(i);
       ofile << std::setw(15) << pot_en(i) << "\n";
-    }*/
+    }
   }
 
   else{

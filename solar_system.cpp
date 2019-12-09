@@ -271,7 +271,7 @@ int main(int argc, char* argv[]){
 
   earth.velocity_verlet(earth);
   earth.kinetic_energy(earth);
-  earth.write_to_file(earth, "earth.txt");
+  //earth.write_to_file(earth, "earth.txt");
 
 
 
