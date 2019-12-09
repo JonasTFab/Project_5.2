@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <string>
+#include <list>
 //#include "mpi.h"
 
 //For debugging:
@@ -17,10 +18,12 @@
 
 std::ofstream ofile;
 double const pi = 3.14159265359;
-double const M_sun = 2*pow(10,30);        // in kilograms
-double const M_earth = 6*pow(10,24);      // in kilograms
-double const sun_rad = 0.00465047;        // in AU
-double const GM = 4*pi*pi;
+double const GM = 4*pi*pi;                  // gravitational constant times one solar mass
+double const sun_rad = 0.00465047;          // in AU
+double const M_sun = 2*pow(10,30);          // in kilograms
+double const M_earth = 6*pow(10,24);        // in kilograms
+double const M_jupiter = 1.9*pow(10,27);    // in kilograms
+
 
 
 class object {
@@ -44,7 +47,6 @@ public:
   arma::Col <double> pot_en;
 
   // initialize
-  object(){}
   object(double x0,double y0,double z0,double vx0,double vy0,double vz0,double M, int len)
   {
     N = len;
@@ -151,31 +153,155 @@ public:
 
 class solar_system {
 private:
-  int num_planets, N;
-  double tot_mass,G,center_of_mass;
-  arma::Col <double> init_position;
-  std::string planets;
+  int num_planets,N,nothing;
+  double tot_mass,G,tot_momentum,com,r_com,dt;
+  double ax_prev,ay_prev,az_prev;
+  arma::Col <double> pos,vel,mass;
+  std::string = word;
+  std::list<std::string> planet_name;
 public:
-  solar_system()
+  double T;
+  solar_system(int len)
   {
-    num_planets = 0;
-    tot_mass = 0;
-    G = GM / M_sun;
+    N = len;
+    T = 10;
+    G = GM;                                           // divided by one sun mass
+    num_planets=tot_mass=tot_momentum=0;
   }
 
-  void add_planet(object planet){
+
+  void add_planet(object planet, std::string name)
+  {
     num_planets += 1;
+    planet_name.push_back(name);
     tot_mass += planet.mass;
+    mass.resize(num_planets);
+    mass(num_planets-1) = planet.mass;
+
+    pos.resize(3*num_planets);
+    pos(3*(num_planets-1)) = planet.x(0);
+    pos(3*(num_planets-1)+1) = planet.y(0);
+    pos(3*(num_planets-1)+2) = planet.z(0);
+
+    vel.resize(3*num_planets);
+    vel(3*(num_planets-1)) = planet.vx(0);
+    vel(3*(num_planets-1)+1) = planet.vy(0);
+    vel(3*(num_planets-1)+2) = planet.vz(0);
   }
 
-  void initial_position ()
+  void sun_fixed()
   {
-    init_position = arma::zeros(3*num_planets);
-    for (int i=0; i<num_planets; i++){
-      init_position = 0;
-    }
-    center_of_mass = 0;
+
   }
+
+
+  void sun_included()
+  {
+    num_planets += 1;
+    tot_mass += 1;
+    mass.resize(num_planets);
+    mass(num_planets-1) = 1;                          // sun mass relative to the sun
+    pos.resize(3*num_planets);
+    pos(3*(num_planets-1)) = 0;
+    pos(3*(num_planets-1)+1) = 0;
+    pos(3*(num_planets-1)+2) = 0;
+    vel.resize(3*num_planets);
+
+    for (int i=0; i<num_planets-1; i++){
+      vel(3*(num_planets-1)) -= mass(i)*vel(3*i);             // divided by one sun mass
+      vel(3*(num_planets-1)+1) -= mass(i)*vel(3*i+1);         // divided by one sun mass
+      vel(3*(num_planets-1)+2) -= mass(i)*vel(3*i+2);         // divided by one sun mass
+    }
+
+    for (int i=0; i<num_planets; i++){
+      tot_momentum += mass(i)*vel(3*i);
+      tot_momentum += mass(i)*vel(3*i+1);
+      tot_momentum += mass(i)*vel(3*i+2);
+    }
+    //std::cout << tot_momentum << std::endl << "\n";
+  }
+
+  double center_of_mass()
+  {
+    for (int i=0; i<num_planets; i++){
+      r_com = sqrt(pos(i)*pos(i)+pos(i+1)*pos(i+1)+pos(i+2)*pos(i+2));
+      com += r_com*mass(i);
+    }
+    com /= tot_mass;
+    return com;
+  }
+
+  double distance(int planet1, int planet2)
+  {
+    double x,y,z;
+    x = pos(3*planet1)-pos(3*planet2);
+    y = pos(3*planet1+1)-pos(3*planet2+1);
+    z = pos(3*planet1+2)-pos(3*planet2+2);
+    return sqrt(x*x+y*y+z*z);
+  }
+
+  double mass_prod(int planet1, int planet2)
+  {
+    return mass(planet1)*mass(planet2);
+  }
+
+  double force(int planet1, int planet2)
+  {
+    return G*mass_prod(planet1,planet2) / pow(distance(planet1,planet2),3);
+  }
+
+  void solve()
+  {
+    std::string fileout = "data_orbits.txt";
+    ofile.open(fileout);
+    ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
+    dt = T/N;
+
+    //for (int k=0; k<num_planets; k++){
+    //  ofile << std::setw(15) << planet_name(k);
+    //  ofile << std::setw(15) << planet_name(k);
+    //  ofile << std::setw(15) << planet_name(k);
+    //}
+    ofile << "\n";
+    for (int k=0; k<num_planets; k++){
+      ofile << std::setw(15) << pos(3*k);
+      ofile << std::setw(15) << pos(3*k+1);
+      ofile << std::setw(15) << pos(3*k+2);
+    }
+    ofile << "\n";
+
+    for (int iter=0; iter<N; iter++){
+
+      for (int i=0; i<num_planets; i++){
+        for (int j=0; j<num_planets; j++){
+          if (i==j) {nothing=0;}
+          else{
+            ax_prev = -force(i,j)*pos(3*i)/mass(i);
+            ay_prev = -force(i,j)*pos(3*i+1)/mass(i);
+            az_prev = -force(i,j)*pos(3*i+2)/mass(i);
+
+            pos(3*i) = pos(3*i) + dt*vel(3*i) + 0.5*dt*dt*ax_prev;
+            pos(3*i+1) = pos(3*i+1) + dt*vel(3*i+1) + 0.5*dt*dt*ay_prev;
+            pos(3*i+2) = pos(3*i+2) + dt*vel(3*i+2) + 0.5*dt*dt*az_prev;
+
+            vel(3*i) = vel(3*i) + 0.5*dt*(-force(i,j)*pos(3*i)/mass(i) + ax_prev);
+            vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-force(i,j)*pos(3*i+1)/mass(i) + ay_prev);
+            vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-force(i,j)*pos(3*i+2)/mass(i) + az_prev);
+          }
+        }
+      }
+
+      for (int k=0; k<num_planets; k++){
+        ofile << std::setw(15) << pos(3*k);
+        ofile << std::setw(15) << pos(3*k+1);
+        ofile << std::setw(15) << pos(3*k+2);
+      }
+      ofile << "\n";
+    }
+
+
+  }
+
 
 };
 
@@ -296,6 +422,7 @@ int main(int argc, char* argv[]){
   std::string method = argv[1];
   int len = atoi(argv[2]);//number of integration points
   double int_vel = atof(argv[3]);//initial velocity
+  double time = atof(argv[4]);
   double esc_vel = sqrt(2*GM);
 
   //std::cout << esc_vel << "\n";
@@ -311,10 +438,17 @@ int main(int argc, char* argv[]){
 
   // object( x0, y0, z0, vx0, vy0, vz0, M )
   // distance is given in AU and mass is given in kg
-  object earth(1,0,0,0,1,0,M_earth,len);
+  object earth(1,0,0,0,int_vel,0,M_earth,len);
+  object jupiter(0,4,0,2,0,0,M_jupiter,len);
+  solar_system system(len);
+  system.T = time;
+  system.add_planet(earth, "Earth");
+  system.add_planet(jupiter, "Jupiter");
+  system.sun_included();
+  system.solve();
 
-  earth.velocity_verlet();
-  earth.kinetic_energy();
+  //earth.velocity_verlet();
+  //earth.kinetic_energy();
   //earth.write_to_file("earth.txt");
 
 
