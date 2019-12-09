@@ -159,7 +159,7 @@ public:
 class solar_system {
 private:
   int num_planets,N,nothing;
-  double tot_mass,G,tot_momentum,com,r_com,dt;
+  double tot_mass,G,tot_momentum,com,r_com,dt,sum_force;
   double ax_prev,ay_prev,az_prev;
   arma::Col <double> pos,vel,mass;
   std::string word;
@@ -281,18 +281,20 @@ public:
         for (int j=0; j<num_planets; j++){
           if (i==j) {nothing=0;}
           else{
-            ax_prev = -force(i,j)*pos(3*i)/mass(i);
-            ay_prev = -force(i,j)*pos(3*i+1)/mass(i);
-            az_prev = -force(i,j)*pos(3*i+2)/mass(i);
-            vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-force(i,j)*pos(3*i+2)/mass(i) + az_prev);
-
-            pos(3*i) = pos(3*i) + dt*vel(3*i) + 0.5*dt*dt*ax_prev;
-            pos(3*i+1) = pos(3*i+1) + dt*vel(3*i+1) + 0.5*dt*dt*ay_prev;
-            pos(3*i+2) = pos(3*i+2) + dt*vel(3*i+2) + 0.5*dt*dt*az_prev;
-
-            vel(3*i) = vel(3*i) + 0.5*dt*(-force(i,j)*pos(3*i)/mass(i) + ax_prev);
-            vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-force(i,j)*pos(3*i+1)/mass(i) + ay_prev);
+            sum_force += force(i,j);
           }
+
+          ax_prev = -sum_force*pos(3*i)/mass(i);
+          ay_prev = -sum_force*pos(3*i+1)/mass(i);
+          az_prev = -sum_force*pos(3*i+2)/mass(i);
+          pos(3*i) = pos(3*i) + dt*vel(3*i) + 0.5*dt*dt*ax_prev;
+          pos(3*i+1) = pos(3*i+1) + dt*vel(3*i+1) + 0.5*dt*dt*ay_prev;
+          pos(3*i+2) = pos(3*i+2) + dt*vel(3*i+2) + 0.5*dt*dt*az_prev;
+
+          vel(3*i) = vel(3*i) + 0.5*dt*(-sum_force*pos(3*i)/mass(i) + ax_prev);
+          vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-sum_force*pos(3*i+1)/mass(i) + ay_prev);
+          vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-sum_force*pos(3*i+2)/mass(i) + az_prev);
+          sum_force = 0;
         }
       }
 
@@ -458,14 +460,14 @@ int main(int argc, char* argv[]){
   solar_system system(len);
   std::cout << 6.618180582706258E-04 << std::endl;
   system.T = time;
-  system.add_planet(mercury,"Mercury");
-  system.add_planet(venus,"Venus");
+  //system.add_planet(mercury,"Mercury");
+  //system.add_planet(venus,"Venus");
   system.add_planet(earth, "Earth");
-  system.add_planet(mars,"Mars");
+  //system.add_planet(mars,"Mars");
   system.add_planet(jupiter, "Jupiter");
-  system.add_planet(saturn,"Saturn");
-  system.add_planet(uranus,"Uranus");
-  system.add_planet(neptune,"Neptune");
+  //system.add_planet(saturn,"Saturn");
+  //system.add_planet(uranus,"Uranus");
+  //system.add_planet(neptune,"Neptune");
   system.sun_included();
   system.solve();
 

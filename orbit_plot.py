@@ -35,6 +35,7 @@ def plot(file,method):
 def system_plot(file):
     data = np.loadtxt(file)
     sorted_data = np.transpose(data)
+    names = sorted_data[0]
     steps = len(data)
     planets = int(len(sorted_data)/3)
 
