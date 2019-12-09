@@ -40,9 +40,13 @@ def system_plot(file):
 
     data = np.loadtxt(file,skiprows=1)
     sorted_data = np.transpose(data)
-    names = sorted_data[0]
     steps = len(data)
     planets = int(len(sorted_data)/3)
+
+    system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
+    system_ax.set_xbound(0, 0)
+    system_ax.set_ybound(0, 0)
+    system_ax.set_zbound(-0.0001, 0.0001)
 
 
     for i in range(planets):
