@@ -32,15 +32,20 @@ def plot(file,method):
     ax2.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
     ax2.set_xlabel("t (year)"); ax2.set_ylabel("Energy")
 
+
 def system_plot(file):
-    data = np.loadtxt(file)
+    planet_names = open(file,"r")
+    header = planet_names.readline()
+    names = header.split()
+
+    data = np.loadtxt(file,skiprows=1)
     sorted_data = np.transpose(data)
     steps = len(data)
     planets = int(len(sorted_data)/3)
 
+
     for i in range(planets):
-        system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2])
-    system_ax.legend(["Earth","Jupiter","Sun"])
+        system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
     system_ax.set_xlabel("x (AU)"); system_ax.set_ylabel("y (AU)"); system_ax.set_zlabel("z (AU)")
 
 
@@ -62,4 +67,5 @@ plt.show()
 system_fig = plt.figure(3)
 system_ax = system_fig.gca(projection="3d")
 system_plot("data_orbits.txt")
+plt.legend()
 plt.show()
