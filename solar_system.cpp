@@ -456,6 +456,12 @@ int main(int argc, char* argv[]){
   solar_system system(len);
   system.T = time;
   system.add_planet(earth, "Earth");
+  system.add_planet(mercury,"Mercury");
+  system.add_planet(venus,"Venus");
+  system.add_planet(mars,"Mars");
+  system.add_planet(saturn,"Saturn");
+  system.add_planet(uranus,"Uranus");
+  system.add_planet(neptune,"Neptune");
   system.add_planet(jupiter, "Jupiter");
   system.sun_included();
   system.solve();
