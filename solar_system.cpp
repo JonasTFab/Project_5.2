@@ -23,7 +23,12 @@ double const sun_rad = 0.00465047;          // in AU
 double const M_sun = 2*pow(10,30);          // in kilograms
 double const M_earth = 6*pow(10,24);        // in kilograms
 double const M_jupiter = 1.9*pow(10,27);    // in kilograms
-
+double const M_mercury = 3.302*pow(10,23);
+double const M_venus = 48.685*pow(10,23);
+double const M_mars = 6.4171*pow(10,23);
+double const M_saturn = 5.6834*pow(10,26);
+double const M_neptune = 1.03*pow(10,26);
+double const M_uranus = 8.8*pow(10,25);
 
 
 class object {
@@ -157,7 +162,7 @@ private:
   double tot_mass,G,tot_momentum,com,r_com,dt;
   double ax_prev,ay_prev,az_prev;
   arma::Col <double> pos,vel,mass;
-  std::string = word;
+  std::string word;
   std::list<std::string> planet_name;
 public:
   double T;
@@ -438,8 +443,16 @@ int main(int argc, char* argv[]){
 
   // object( x0, y0, z0, vx0, vy0, vz0, M )
   // distance is given in AU and mass is given in kg
-  object earth(1,0,0,0,int_vel,0,M_earth,len);
-  object jupiter(0,4,0,2,0,0,M_jupiter,len);
+  /* Positions and velocity data gathered from https://ssd.jpl.nasa.gov/horizons.cgi
+   at A.D. 2019-Dec-09 00:00:00.0000 TDB */
+  object mercury(-3.985847784965280E-01,-8.678484206044013E-02,2.854818397850725E-02,6.808061022618487E-04,-2.615697349455290E-02, -2.200251411818960E-03,M_mercury,len);
+  object venus(6.140254422268607E-01,-3.889781916531376E-01,-4.077096546312043E-02,1.070185289465133E-02,1.700477808956028E-02,-3.842439888550384E-04,M_venus,len);
+  object mars(-1.485032517264654E+00, -6.306157101254950E-01, 2.322202328310920E-02,5.992165013982506E-03,-1.168365481307998E-02,-3.918498445436787E-04,M_mars,len);
+  object saturn(3.685089251558515E+00,-9.335591564910553E+00,1.562158057974095E-02,4.889009775915366E-03,2.032733431539527E-03,-2.295408335647753E-04,M_saturn,len);
+  object jupiter(3.551315858851771E-01,-5.223858708443553E+00,1.375193093344411E-02,7.445397359016055E-03,8.688615308896841E-04,-1.701937692576648E-04,M_jupiter,len);
+  object earth(2.328416719695888E-01, 9.570420225654582E-01,-4.193306777199945E-05,-1.699305780122259E-02,3.997104358502586E-03,-4.831893976607005E-07,M_earth,len);
+  object uranus(1.627777749498813E+01,1.130905239963674E+01,-1.688216806579894E-01,-2.265866949228651E-03,3.047569009304266E-03,4.052178469796985E-05,M_uranus,len);
+  object neptune(2.922766815589142E+01,6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
   solar_system system(len);
   system.T = time;
   system.add_planet(earth, "Earth");
