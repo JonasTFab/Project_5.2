@@ -189,9 +189,9 @@ public:
     pos(3*(num_planets-1)+2) = planet.z(0);
 
     vel.resize(3*num_planets);
-    vel(3*(num_planets-1)) = planet.vx(0);
-    vel(3*(num_planets-1)+1) = planet.vy(0);
-    vel(3*(num_planets-1)+2) = planet.vz(0);
+    vel(3*(num_planets-1)) = planet.vx(0)*365;
+    vel(3*(num_planets-1)+1) = planet.vy(0)*365;
+    vel(3*(num_planets-1)+2) = planet.vz(0)*365;
   }
 
   void sun_fixed()
@@ -454,15 +454,16 @@ int main(int argc, char* argv[]){
   object uranus(1.627777749498813E+01,1.130905239963674E+01,-1.688216806579894E-01,-2.265866949228651E-03,3.047569009304266E-03,4.052178469796985E-05,M_uranus,len);
   object neptune(2.922766815589142E+01,6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
   solar_system system(len);
+  std::cout << 6.618180582706258E-04 << std::endl;
   system.T = time;
-  system.add_planet(earth, "Earth");
   system.add_planet(mercury,"Mercury");
   system.add_planet(venus,"Venus");
+  system.add_planet(earth, "Earth");
   system.add_planet(mars,"Mars");
+  system.add_planet(jupiter, "Jupiter");
   system.add_planet(saturn,"Saturn");
   system.add_planet(uranus,"Uranus");
   system.add_planet(neptune,"Neptune");
-  system.add_planet(jupiter, "Jupiter");
   system.sun_included();
   system.solve();
 
