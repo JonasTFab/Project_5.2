@@ -203,6 +203,7 @@ public:
   void sun_included()
   {
     num_planets += 1;
+    planet_name.push_back("Sun");
     tot_mass += 1;
     mass.resize(num_planets);
     mass(num_planets-1) = 1;                          // sun mass relative to the sun
@@ -262,12 +263,12 @@ public:
     ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
     dt = T/N;
 
-    //for (int k=0; k<num_planets; k++){
-    //  ofile << std::setw(15) << planet_name(k);
-    //  ofile << std::setw(15) << planet_name(k);
-    //  ofile << std::setw(15) << planet_name(k);
-    //}
+    ofile << std::setw(15);
+    for (auto v : planet_name)
+          ofile << v << std::setw(45);
     ofile << "\n";
+
+
     for (int k=0; k<num_planets; k++){
       ofile << std::setw(15) << pos(3*k);
       ofile << std::setw(15) << pos(3*k+1);
@@ -276,7 +277,6 @@ public:
     ofile << "\n";
 
     for (int iter=0; iter<N; iter++){
-
       for (int i=0; i<num_planets; i++){
         for (int j=0; j<num_planets; j++){
           if (i==j) {nothing=0;}
@@ -284,6 +284,7 @@ public:
             ax_prev = -force(i,j)*pos(3*i)/mass(i);
             ay_prev = -force(i,j)*pos(3*i+1)/mass(i);
             az_prev = -force(i,j)*pos(3*i+2)/mass(i);
+            vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-force(i,j)*pos(3*i+2)/mass(i) + az_prev);
 
             pos(3*i) = pos(3*i) + dt*vel(3*i) + 0.5*dt*dt*ax_prev;
             pos(3*i+1) = pos(3*i+1) + dt*vel(3*i+1) + 0.5*dt*dt*ay_prev;
@@ -291,7 +292,6 @@ public:
 
             vel(3*i) = vel(3*i) + 0.5*dt*(-force(i,j)*pos(3*i)/mass(i) + ax_prev);
             vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-force(i,j)*pos(3*i+1)/mass(i) + ay_prev);
-            vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-force(i,j)*pos(3*i+2)/mass(i) + az_prev);
           }
         }
       }
@@ -303,6 +303,7 @@ public:
       }
       ofile << "\n";
     }
+    ofile.close();
 
 
   }
@@ -424,6 +425,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 
 int main(int argc, char* argv[]){
 
+  ofile << "\n";
   std::string method = argv[1];
   int len = atoi(argv[2]);//number of integration points
   double int_vel = atof(argv[3]);//initial velocity
@@ -441,7 +443,7 @@ int main(int argc, char* argv[]){
   //planet(x,y,z,vx,vy,vz,method,M_earth);
 
 
-  // object( x0, y0, z0, vx0, vy0, vz0, M )
+  // object( x0, y0, z0, vx0, vy0, vz0, M, points )
   // distance is given in AU and mass is given in kg
   /* Positions and velocity data gathered from https://ssd.jpl.nasa.gov/horizons.cgi
    at A.D. 2019-Dec-09 00:00:00.0000 TDB */
