@@ -69,7 +69,35 @@ public:
   }
 
   // functions
-  void velocity_verlet(object)
+  void velocity_verlet()
+  {
+    r = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
+    a = GM / (r*r*r);
+    ax_prev = -a * x(0);
+    ay_prev = -a * y(0);
+    az_prev = -a * z(0);
+    for (int i=1; i<N; i++){
+      x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
+      y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
+      z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
+
+      r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
+      a = GM / (r*r*r);
+      ax_new = -a * x(i);
+      ay_new = -a * y(i);
+      az_new = -a * z(i);
+
+      vx(i) = vx(i-1) + 0.5*dt*(ax_new + ax_prev);
+      vy(i) = vy(i-1) + 0.5*dt*(ay_new + ay_prev);
+      vz(i) = vz(i-1) + 0.5*dt*(az_new + az_prev);
+
+      ax_prev = ax_new;
+      ay_prev = ay_new;
+      az_prev = az_new;
+    }
+  }
+
+  void euler()
   {
     for (int i=1; i<N; i++){
       r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
@@ -86,31 +114,14 @@ public:
     }
   }
 
-  void euler(object)
-  {
-    for (int i=1; i<N; i++){
-      r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
-      a = GM / (r*r);
-      ax = -a*x(i-1);
-      ay = -a*y(i-1);
-      az = -a*z(i-1);
-      vx(i) = vx(i-1) + ax*dt;
-      vy(i) = vy(i-1) + ay*dt;
-      vz(i) = vz(i-1) + az*dt;
-      x(i) = x(i-1) + vx(i-1)*dt;
-      y(i) = y(i-1) + vy(i-1)*dt;
-      z(i) = z(i-1) + vz(i-1)*dt;
-    }
-  }
-
-  void kinetic_energy(object)
+  void kinetic_energy()
   {
     for (int i; i<N; i++){
       kin_en(i) = 0.5*mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
     }
   }
 
-  void potential_energy(object)
+  void potential_energy()
   {
 
     for (int i; i<N; i++){
@@ -118,7 +129,7 @@ public:
     }
   }
 
-  void write_to_file(object, std::string filename)
+  void write_to_file(std::string filename)
   {
     ofile.open(filename);
     ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
@@ -138,7 +149,40 @@ public:
 };
 
 
+class solar_system {
+private:
+  int num_planets, N;
+  double tot_mass,G,center_of_mass;
+  arma::Col <double> init_position;
+  std::string planets;
+public:
+  solar_system()
+  {
+    num_planets = 0;
+    tot_mass = 0;
+    G = GM / M_sun;
+  }
 
+  void add_planet(object planet){
+    num_planets += 1;
+    tot_mass += planet.mass;
+  }
+
+  void initial_position ()
+  {
+    init_position = arma::zeros(3*num_planets);
+    for (int i=0; i<num_planets; i++){
+      init_position = 0;
+    }
+    center_of_mass = 0;
+  }
+
+};
+
+
+
+
+/*
 void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
             arma::Col <double> &vx, arma::Col <double> &vy,
             arma::Col <double> &vz, std::string method, double mass){
@@ -243,7 +287,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
     }
   ofile.close();
 } // end of function planet()
-
+*/
 
 
 
@@ -269,9 +313,9 @@ int main(int argc, char* argv[]){
   // distance is given in AU and mass is given in kg
   object earth(1,0,0,0,1,0,M_earth,len);
 
-  earth.velocity_verlet(earth);
-  earth.kinetic_energy(earth);
-  //earth.write_to_file(earth, "earth.txt");
+  earth.velocity_verlet();
+  earth.kinetic_energy();
+  //earth.write_to_file("earth.txt");
 
 
 
