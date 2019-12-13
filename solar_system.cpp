@@ -136,6 +136,10 @@ public:
     }
   }
 
+  double mecury_perehelion(){
+
+  }
+
   void write_to_file(std::string filename)
   {
     ofile.open(filename);
