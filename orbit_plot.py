@@ -37,10 +37,8 @@ def system_plot(file):
     planet_names = open(file,"r")
     header = planet_names.readline()
     names = header.split()
-
     data = np.loadtxt(file,skiprows=1)
     sorted_data = np.transpose(data)
-    names = sorted_data[0]
     steps = len(data)
     planets = int(len(sorted_data)/3)
 
@@ -68,5 +66,5 @@ plt.show()
 system_fig = plt.figure(3)
 system_ax = system_fig.gca(projection="3d")
 system_plot("data_orbits.txt")
-plt.legend()
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 5,fancybox=True,fontsize=10)
 plt.show()
