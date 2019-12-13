@@ -136,6 +136,10 @@ public:
     }
   }
 
+  double mecury_perehelion(){
+
+  }
+
   void write_to_file(std::string filename)
   {
     ofile.open(filename);
@@ -492,10 +496,8 @@ int main(int argc, char* argv[]){
   object earth(2.328416719695888E-01, 9.570420225654582E-01,-4.193306777199945E-05,-1.699305780122259E-02,3.997104358502586E-03,-4.831893976607005E-07,M_earth,len);
   object uranus(1.627777749498813E+01,1.130905239963674E+01,-1.688216806579894E-01,-2.265866949228651E-03,3.047569009304266E-03,4.052178469796985E-05,M_uranus,len);
   object neptune(2.922766815589142E+01,6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
-  object massive_object(0,0,200,0,0,0,pow(10,27),len);
   solar_system system(len);
   system.T = time;
-  system.add_planet(massive_object,"Supermassive black hole");
   system.add_planet(mercury,"Mercury");
   system.add_planet(venus,"Venus");
   system.add_planet(earth, "Earth");

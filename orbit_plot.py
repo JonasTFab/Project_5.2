@@ -42,6 +42,11 @@ def system_plot(file):
     steps = len(data)
     planets = int(len(sorted_data)/3)
 
+    system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
+    system_ax.set_xbound(0, 0)
+    system_ax.set_ybound(0, 0)
+    system_ax.set_zbound(-0.0001, 0.0001)
+
 
     for i in range(planets):
         system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
