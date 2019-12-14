@@ -167,7 +167,7 @@ public:
 class solar_system {
 private:
   int num_planets,N,nothing;
-  double tot_mass,G,tot_momentum,com,r_com,dt;
+  double tot_mass,G,tot_momentum,com,r_com,dt,rad,GM_fixed;
   double ax_prev,ay_prev,az_prev,sum_forcex,sum_forcey,sum_forcez;
   arma::Col <double> pos,vel,mass;
   std::string word;
@@ -180,7 +180,7 @@ public:
     T = 10;
     G = GM;                                           // divided by one sun mass
     num_planets=tot_mass=tot_momentum=0;
-    sum_forcex=sum_forcey=sum_forcez=0;
+    sum_forcex=sum_forcey=sum_forcez=GM_fixed=0;
   }
 
 
@@ -205,7 +205,7 @@ public:
 
   void sun_fixed()
   {
-
+    GM_fixed = GM;
   }
 
 
@@ -296,9 +296,10 @@ public:
           }
         }
 
-          ax_prev = -sum_forcex/mass(i);
-          ay_prev = -sum_forcey/mass(i);
-          az_prev = -sum_forcez/mass(i);
+          rad = sqrt(pow(pos(3*i),2) + pow(pos(3*i+1),2) + pow(pos(3*i+2),2));
+          ax_prev = -sum_forcex/mass(i) - GM_fixed*pos(3*i) / pow(rad,3);
+          ay_prev = -sum_forcey/mass(i) - GM_fixed*pos(3*i+1) / pow(rad,3);
+          az_prev = -sum_forcez/mass(i) - GM_fixed*pos(3*i+2) / pow(rad,3);
 
           pos(3*i) = pos(3*i) + dt*vel(3*i) + 0.5*dt*dt*ax_prev;
           pos(3*i+1) = pos(3*i+1) + dt*vel(3*i+1) + 0.5*dt*dt*ay_prev;
@@ -315,28 +316,9 @@ public:
             }
           }
 
-          vel(3*i) = vel(3*i) + 0.5*dt*(-sum_forcex/mass(i) + ax_prev);
-          vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-sum_forcey/mass(i) + ay_prev);
-          vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-sum_forcez/mass(i) + az_prev);
-////////////////////////////////////////////////////////
-          /*for (int i=1; i<n; i++){
-            x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
-            y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
-            z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
-
-            r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
-            a = GM / (r*r*r);
-            ax_new = -a * x(i);
-            ay_new = -a * y(i);
-            az_new = -a * z(i);
-
-            vx(i) = vx(i-1) + 0.5*dt*(ax_new + ax_prev);
-            vy(i) = vy(i-1) + 0.5*dt*(ay_new + ay_prev);
-            vz(i) = vz(i-1) + 0.5*dt*(az_new + az_prev);
-
-            ax_prev = ax_new;
-            ay_prev = ay_new;
-            az_prev = az_new;*/
+          vel(3*i) = vel(3*i) + 0.5*dt*(-sum_forcex/mass(i) - GM_fixed*pos(3*i) / pow(rad,3) + ax_prev);
+          vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-sum_forcey/mass(i) - GM_fixed*pos(3*i+1) / pow(rad,3) + ay_prev);
+          vel(3*i+2) = vel(3*i+2) + 0.5*dt*(-sum_forcez/mass(i) - GM_fixed*pos(3*i+2) / pow(rad,3) + az_prev);
 
           sum_forcex=sum_forcey=sum_forcez=0;
       }
@@ -490,8 +472,8 @@ int main(int argc, char* argv[]){
 
   // object( x0, y0, z0, vx0, vy0, vz0, M, points )
   // distance is given in AU and mass is given in kg
-  /* Positions and velocity data gathered from https://ssd.jpl.nasa.gov/horizons.cgi
-   at A.D. 2019-Dec-09 00:00:00.0000 TDB */
+  // Positions and velocity data gathered from https://ssd.jpl.nasa.gov/horizons.cgi
+  // at A.D. 2019-Dec-09 00:00:00.0000 TDB */
   object mercury(-3.985847784965280E-01,-8.678484206044013E-02,2.854818397850725E-02,6.808061022618487E-04,-2.615697349455290E-02, -2.200251411818960E-03,M_mercury,len);
   object venus(6.140254422268607E-01,-3.889781916531376E-01,-4.077096546312043E-02,1.070185289465133E-02,1.700477808956028E-02,-3.842439888550384E-04,M_venus,len);
   object mars(-1.485032517264654E+00, -6.306157101254950E-01, 2.322202328310920E-02,5.992165013982506E-03,-1.168365481307998E-02,-3.918498445436787E-04,M_mars,len);
@@ -510,7 +492,8 @@ int main(int argc, char* argv[]){
   system.add_planet(saturn,"Saturn");
   system.add_planet(uranus,"Uranus");
   system.add_planet(neptune,"Neptune");
-  system.sun_included();
+  //system.sun_included();
+  system.sun_fixed();
   system.solve();
 
   //earth.velocity_verlet();
