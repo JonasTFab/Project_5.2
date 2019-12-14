@@ -18,6 +18,10 @@
 
 std::ofstream ofile;
 double const pi = 3.14159265359;
+doube const AU = 149597870700; //astronomical unit in meters
+double const c = 299792458*60*60*24*365/AU; //speed of light in vaccum AU/year
+
+//planetary properties
 double const GM = 4*pi*pi;                  // gravitational constant times one solar mass
 double const sun_rad = 0.00465047;          // in AU
 double const M_sun = 2*pow(10,30);          // in kilograms
