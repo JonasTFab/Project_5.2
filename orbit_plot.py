@@ -42,10 +42,13 @@ def system_plot(file):
     steps = len(data)
     planets = int(len(sorted_data)/3)
 
+    if "sun" not in names:
+        system_ax.scatter(0,0,0,"O",label="Sun",color="orange",s=50)
+
     system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
-    system_ax.set_xbound(-0.001, 0.001)
-    system_ax.set_ybound(-0.001, 0.001)
-    system_ax.set_zbound(-0.0001, 0.0001)
+    system_ax.set_xbound(-5, 5)#system_ax.set_xbound(-0.001, 0.001)
+    system_ax.set_ybound(-5, 5)#system_ax.set_ybound(-0.001, 0.001)
+    system_ax.set_zbound(-2, 2)#system_ax.set_zbound(-0.0001, 0.0001)
 
 
     for i in range(planets):
