@@ -31,7 +31,7 @@ double const M_mercury = 3.302*pow(10,23);
 double const M_venus = 48.685*pow(10,23);
 double const M_mars = 6.4171*pow(10,23);
 double const M_saturn = 5.6834*pow(10,26);
-double const M_neptune = 1.03*pow(10,26);
+double const M_neptune = 102.413*pow(10,24);
 double const M_uranus = 8.8*pow(10,25);
 
 
@@ -501,19 +501,20 @@ int main(int argc, char* argv[]){
   object jupiter(3.551315858851771E-01,-5.223858708443553E+00,1.375193093344411E-02,7.445397359016055E-03,8.688615308896841E-04,-1.701937692576648E-04,M_jupiter*jup_scale,len);
   object earth(2.328416719695888E-01, 9.570420225654582E-01,-4.193306777199945E-05,-1.699305780122259E-02,3.997104358502586E-03,-4.831893976607005E-07,M_earth,len);
   object uranus(1.627777749498813E+01,1.130905239963674E+01,-1.688216806579894E-01,-2.265866949228651E-03,3.047569009304266E-03,4.052178469796985E-05,M_uranus,len);
-  object neptune(2.922766815589142E+01,6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
+  object neptune(2.922766815589142E+01,-6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
+
   solar_system system(len);
   system.T = time;
-  //system.add_planet(mercury,"Mercury");
-  //system.add_planet(venus,"Venus");
+  system.add_planet(mercury,"Mercury");
+  system.add_planet(venus,"Venus");
   system.add_planet(earth, "Earth");
-  //system.add_planet(mars,"Mars");
-  //system.add_planet(jupiter, "Jupiter");
-  //system.add_planet(saturn,"Saturn");
-  //system.add_planet(uranus,"Uranus");
-  //system.add_planet(neptune,"Neptune");
-  //system.sun_included();
-  system.sun_fixed();
+  system.add_planet(mars,"Mars");
+  system.add_planet(jupiter, "Jupiter");
+  system.add_planet(saturn,"Saturn");
+  system.add_planet(uranus,"Uranus");
+  system.add_planet(neptune,"Neptune");
+  system.sun_included();
+  //system.sun_fixed();
   system.solve();
 
   //earth.velocity_verlet();

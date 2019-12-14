@@ -72,6 +72,7 @@ plt.show()
 
 system_fig = plt.figure(3)
 system_ax = system_fig.gca(projection="3d")
+#plt.title('Three body problem')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
 system_plot("data_orbits.txt")
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 5,fancybox=True,fontsize=10)
+plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 4,fancybox=True,fontsize=10)
 plt.show()
