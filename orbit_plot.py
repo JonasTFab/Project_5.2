@@ -21,11 +21,18 @@ def plot(file,method):
         col = "red"
         meth = "Verlet"
 
-
     ax.text2D(0.4,1,"Orbit in %.1f year" % (time[-1]),transform=ax.transAxes)
     ax.scatter(x[0],y[0],z[0],"o",label="Earth (%s)"%meth,color=col)
     ax.plot(x,y,z,label="Earth path (%s)"%meth,color=col)
     ax.set_xlabel("x (AU)"); ax.set_ylabel("y (AU)"); ax.set_zlabel("z (AU)")
+
+    if (file=="mercury_perihelion.txt"):
+        ax.autoscale(enable=False,axis='both')
+        center = 0.3075
+        diff = center/10
+        ax.set_xbound(center-diff, center+diff)
+        ax.set_ybound(-diff, diff)
+        ax.set_zbound(-diff, diff)
 
     ax2.plot(time,kin_en,"--",label="Kinetic energy (%s)"%meth,color=col)
     ax2.plot(time,pot_en,"-.",label="Potential energy (%s)"%meth,color=col)
@@ -44,7 +51,7 @@ def system_plot(file):
 
     system_ax.scatter(0,0,0,"O",label="Sun",color="orange",s=50)
 
-    system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
+    system_ax.autoscale(enable=False,axis='both')
     system_ax.set_xbound(-5, 5)#system_ax.set_xbound(-0.001, 0.001)
     system_ax.set_ybound(-5, 5)#system_ax.set_ybound(-0.001, 0.001)
     system_ax.set_zbound(-2, 2)#system_ax.set_zbound(-0.0001, 0.0001)
@@ -56,23 +63,25 @@ def system_plot(file):
 
 
 
-"""
+
 fig = plt.figure(1)
 ax = fig.gca(projection="3d")
 fig2 = plt.figure(2)
 ax2 = fig2.add_subplot(111); ax2.grid()
-#euler_plot = plot("Orbit_euler.txt","euler")
-verlet_plot = plot("Orbit_verlet.txt","verlet")
+#plot("Orbit_euler.txt","euler")
+#plot("Orbit_verlet.txt","verlet")
+plot("mercury_perihelion.txt","verlet")
 
 ax.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
 ax.legend(); ax2.legend()
 plt.show()
+
+
 """
-
-
 system_fig = plt.figure(3)
 system_ax = system_fig.gca(projection="3d")
 #plt.title('Three body problem')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
 system_plot("data_orbits.txt")
 plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 4,fancybox=True,fontsize=10)
 plt.show()
+"""

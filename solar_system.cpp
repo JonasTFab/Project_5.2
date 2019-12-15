@@ -18,15 +18,15 @@
 
 std::ofstream ofile;
 double const pi = 3.14159265359;
-double const AU = 149597870700; //astronomical unit in meters
-double const c = 299792458.0*60.0*60.0*24.0*365.0/AU; //speed of light in vaccum AU/year
+double const AU = 149597870700;               //astronomical unit in meters
+double const c = 299792458.0*60*60*24*365/AU; //speed of light in vaccum AU/year
 
 //planetary properties
-double const GM = 4*pi*pi;                  // gravitational constant times one solar mass
-double const sun_rad = 0.00465047;          // in AU
-double const M_sun = 2*pow(10,30);          // in kilograms
-double const M_earth = 6*pow(10,24);        // in kilograms
-double const M_jupiter = 1.9*pow(10,27);    // in kilograms
+double const GM = 4*pi*pi;                    // gravitational constant times one solar mass
+double const sun_rad = 0.00465047;            // in AU
+double const M_sun = 2*pow(10,30);            // all masses are given in kilograms
+double const M_earth = 6*pow(10,24);
+double const M_jupiter = 1.9*pow(10,27);
 double const M_mercury = 3.302*pow(10,23);
 double const M_venus = 48.685*pow(10,23);
 double const M_mars = 6.4171*pow(10,23);
@@ -40,8 +40,9 @@ private:
   double a, r, ax, ay, az, dt;
   double ax_new, ay_new, az_new, ax_prev, ay_prev, az_prev;
   double vx_half, vy_half, vz_half;
+  double merc_a = 0;
+  int merc_peri = 0;
 public:
-  //double x0,y0,z0,vx0,vy0,vz0,mass;
   double mass;
 
   int N;
@@ -75,18 +76,41 @@ public:
     vx(0) = vx0*365;
     vy(0) = vy0*365;
     vz(0) = vz0*365;
-    dt = tmax/N;
 
   }
 
   // functions
+  void mercury_perihelion_initialize()
+  {
+    merc_peri = 1;
+    x(0) = 0.3075;
+    y(0) = 0;
+    z(0) = 0;
+    vx(0) = 0;
+    vy(0) = 12.44;
+    vz(0) = 0;
+  }
+
+  void mercury_perihelion(double distance, double merc_x, double merc_y, double merc_z,
+                                           double merc_vx, double merc_vy, double merc_vz)
+  {
+    double I,J,K,l;
+    I = merc_y*merc_vz - merc_vy*merc_z;
+    J = merc_x*merc_vz - merc_vx*merc_z;
+    K = merc_x*merc_vy - merc_vx*merc_y;
+    l = sqrt(I*I + J*J + K*K);
+    merc_a = 3*GM*l*l / (c*c*pow(distance,5));
+  }
+
   void velocity_verlet()
   {
+    dt = tmax/N;
     r = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
     a = GM / (r*r*r);
-    ax_prev = -a * x(0);
-    ay_prev = -a * y(0);
-    az_prev = -a * z(0);
+    if (merc_peri == 1){mercury_perihelion(r,x(0),y(0),z(0),vx(0),vy(0),vz(0));}      // adding general relativity to Mercury
+    ax_prev = -(a+merc_a) * x(0);
+    ay_prev = -(a+merc_a) * y(0);
+    az_prev = -(a+merc_a) * z(0);
     for (int i=1; i<N; i++){
       x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
       y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
@@ -94,9 +118,10 @@ public:
 
       r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
       a = GM / (r*r*r);
-      ax_new = -a * x(i);
-      ay_new = -a * y(i);
-      az_new = -a * z(i);
+      if (merc_peri == 1){mercury_perihelion(r,x(i),y(i),z(i),vx(i),vy(i),vz(i));}
+      ax_new = -(a+merc_a) * x(i);
+      ay_new = -(a+merc_a) * y(i);
+      az_new = -(a+merc_a) * z(i);
 
       vx(i) = vx(i-1) + 0.5*dt*(ax_new + ax_prev);
       vy(i) = vy(i-1) + 0.5*dt*(ay_new + ay_prev);
@@ -110,9 +135,10 @@ public:
 
   void euler()
   {
+    dt = tmax/N;
     for (int i=1; i<N; i++){
       r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
-      a = GM / (r*r);
+      a = GM / (r*r*r);
       ax = -a*x(i-1);
       ay = -a*y(i-1);
       az = -a*z(i-1);
@@ -134,18 +160,15 @@ public:
 
   void potential_energy()
   {
-
     for (int i; i<N; i++){
       pot_en(i) = -GM*mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
     }
   }
 
-  double mecury_perehelion(){
-    return 0;
-  }
 
   void write_to_file(std::string filename)
   {
+    dt = tmax/N;
     ofile.open(filename);
     ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
 
@@ -206,7 +229,6 @@ public:
   {
     GM_fixed = GM;
   }
-
 
   void sun_included()
   {
@@ -298,8 +320,7 @@ public:
     for (int iter=0; iter<N; iter++){
       for (int i=0; i<num_planets; i++){
         for (int j=0; j<num_planets; j++){
-          if (i==j) {nothing=0;}
-          else{
+          if (i!=j){
             sum_forcex += force(i,j) * (pos(3*i) - pos(3*j));
             sum_forcey += force(i,j) * (pos(3*i+1) - pos(3*j+1));
             sum_forcez += force(i,j) * (pos(3*i+2) - pos(3*j+2));
@@ -307,9 +328,7 @@ public:
         }
 
           rad = sqrt(pow(pos(3*i),2) + pow(pos(3*i+1),2) + pow(pos(3*i+2),2));
-          if (abs(rad) > 1e-6){
-            fixed_force = GM_fixed/pow(rad,3);
-          }
+          if (fabs(rad) > 1e-6){fixed_force = GM_fixed/pow(rad,3);}
 
           ax_prev = -sum_forcex/mass(i) - fixed_force*pos(3*i);
           ay_prev = -sum_forcey/mass(i) - fixed_force*pos(3*i+1);
@@ -321,8 +340,7 @@ public:
 
           sum_forcex=sum_forcey=sum_forcez=0;
           for (int j=0; j<num_planets; j++){
-            if (i==j) {nothing=0;}
-            else{
+            if (i!=j){
               sum_forcex += force(i,j) * (pos(3*i) - pos(3*j));
               sum_forcey += force(i,j) * (pos(3*i+1) - pos(3*j+1));
               sum_forcez += force(i,j) * (pos(3*i+2) - pos(3*j+2));
@@ -330,9 +348,7 @@ public:
           }
 
           rad = sqrt(pow(pos(3*i),2) + pow(pos(3*i+1),2) + pow(pos(3*i+2),2));
-          if (abs(rad) > 1e-3){
-            fixed_force = GM_fixed/pow(rad,3);
-          }
+          if (fabs(rad) > 1e-6){fixed_force = GM_fixed/pow(rad,3);}
 
           vel(3*i) = vel(3*i) + 0.5*dt*(-sum_forcex/mass(i) - fixed_force*pos(3*i) + ax_prev);
           vel(3*i+1) = vel(3*i+1) + 0.5*dt*(-sum_forcey/mass(i) - fixed_force*pos(3*i+1) + ay_prev);
@@ -353,7 +369,6 @@ public:
 
   }
 
-
 };
 
 
@@ -369,7 +384,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
 
   arma::Col <double> t = arma::vec(n);
   double tmin = 0;
-  double tmax = 20;
+  double tmax = 5;
   double dt = (tmax-tmin)/n;
   for (int i=0; i<n; i++){
     t(i)=i*dt;
@@ -384,7 +399,7 @@ void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
     //Solving ode using forward Euler
     for (int i=1; i<n; i++){
       r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
-      a = GM / (r*r);
+      a = GM / (r*r*r);
       ax = -a*x(i-1);
       ay = -a*y(i-1);
       az = -a*z(i-1);
@@ -478,21 +493,23 @@ int main(int argc, char* argv[]){
   double esc_vel = sqrt(2*GM);
   double jup_scale;
 
-  //std::cout << esc_vel << "\n";
-  //arma::Col <double> x = arma::vec(len); x(0)=1;
-  //arma::Col <double> y = arma::vec(len); y(0)=0;
-  //arma::Col <double> z = arma::vec(len); z(0)=0;
-  //arma::Col <double> vx = arma::vec(len); vx(0)=0;
-  //arma::Col <double> vy = arma::vec(len); vy(0)=int_vel;
-  //arma::Col <double> vz = arma::vec(len); vz(0)=0;
+/*
+  std::cout << esc_vel << "\n";
+  arma::Col <double> x = arma::vec(len); x(0)=1;
+  arma::Col <double> y = arma::vec(len); y(0)=0;
+  arma::Col <double> z = arma::vec(len); z(0)=0;
+  arma::Col <double> vx = arma::vec(len); vx(0)=0;
+  arma::Col <double> vy = arma::vec(len); vy(0)=2*pi;
+  arma::Col <double> vz = arma::vec(len); vz(0)=0;
 
-  //planet(x,y,z,vx,vy,vz,method,M_earth);
+  planet(x,y,z,vx,vy,vz,method,M_earth);
+*/
 
 
   // object( x0, y0, z0, vx0, vy0, vz0, M, points )
   // distance is given in AU and mass is given in kg
   // Positions and velocity data gathered from https://ssd.jpl.nasa.gov/horizons.cgi
-  // at A.D. 2019-Dec-09 00:00:00.0000 TDB */
+  // at A.D. 2019-Dec-09 00:00:00.0000 TDB
   object mercury(-3.985847784965280E-01,-8.678484206044013E-02,2.854818397850725E-02,6.808061022618487E-04,-2.615697349455290E-02, -2.200251411818960E-03,M_mercury,len);
   object venus(6.140254422268607E-01,-3.889781916531376E-01,-4.077096546312043E-02,1.070185289465133E-02,1.700477808956028E-02,-3.842439888550384E-04,M_venus,len);
   object mars(-1.485032517264654E+00, -6.306157101254950E-01, 2.322202328310920E-02,5.992165013982506E-03,-1.168365481307998E-02,-3.918498445436787E-04,M_mars,len);
@@ -506,13 +523,13 @@ int main(int argc, char* argv[]){
   solar_system system(len);
   system.T = time;
   system.add_planet(mercury,"Mercury");
-  system.add_planet(venus,"Venus");
-  system.add_planet(earth, "Earth");
-  system.add_planet(mars,"Mars");
-  system.add_planet(jupiter, "Jupiter");
-  system.add_planet(saturn,"Saturn");
-  system.add_planet(uranus,"Uranus");
-  system.add_planet(neptune,"Neptune");
+  //system.add_planet(venus,"Venus");
+  //system.add_planet(earth, "Earth");
+  //system.add_planet(mars,"Mars");
+  //system.add_planet(jupiter, "Jupiter");
+  //system.add_planet(saturn,"Saturn");
+  //system.add_planet(uranus,"Uranus");
+  //system.add_planet(neptune,"Neptune");
   system.sun_included();
   //system.sun_fixed();
   system.solve();
@@ -521,7 +538,12 @@ int main(int argc, char* argv[]){
   //earth.kinetic_energy();
   //earth.write_to_file("Orbit_verlet.txt");
 
-
+  mercury.tmax = time;
+  mercury.mercury_perihelion_initialize();
+  mercury.velocity_verlet();
+  mercury.kinetic_energy();
+  mercury.potential_energy();
+  mercury.write_to_file("mercury_perihelion.txt");
 
   return 0;
 } // end of function main()
