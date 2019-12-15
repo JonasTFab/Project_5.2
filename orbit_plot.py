@@ -42,18 +42,33 @@ def system_plot(file):
     steps = len(data)
     planets = int(len(sorted_data)/3)
 
-    if "sun" not in names:
-        system_ax.scatter(0,0,0,"O",label="Sun",color="orange",s=50)
+    """"check if planets are in within actual orbits """
+    AU = 149597870700
+    Perehelion_values = (np.array([46.0,107.5,147.1,206.6,740.5,1352.6,2741.3,4444.5])*10**9)/AU
+    for i in range(planets-1):
+        x = sorted_data[3*i]
+        y = sorted_data[3*i+1]
+        z = sorted_data[3*i+2]
+        r = np.sqrt(x**2+y**2+z**2)
+        perehelion_model = r[np.argmin(r)]
+        relative_error = abs(perehelion_model-Perehelion_values[i])/Perehelion_values[i]
+        print(relative_error)
 
+    system_fig = plt.figure(3)
+    system_ax = system_fig.gca(projection="3d")
+    system_ax.scatter(0,0,0,"O",label="Sun",color="orange",s=50)
     system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
     system_ax.set_xbound(-5, 5)#system_ax.set_xbound(-0.001, 0.001)
     system_ax.set_ybound(-5, 5)#system_ax.set_ybound(-0.001, 0.001)
     system_ax.set_zbound(-2, 2)#system_ax.set_zbound(-0.0001, 0.0001)
 
 
-    for i in range(planets):
-        system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
-    system_ax.set_xlabel("x (AU)"); system_ax.set_ylabel("y (AU)"); system_ax.set_zlabel("z (AU)")
+    #for i in range(planets):
+    #    system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
+    #system_ax.set_xlabel("x (AU)"); system_ax.set_ylabel("y (AU)"); system_ax.set_zlabel("z (AU)")
+    #plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 4,fancybox=True,fontsize=10)
+
+
 
 
 
@@ -71,9 +86,7 @@ plt.show()
 """
 
 
-system_fig = plt.figure(3)
-system_ax = system_fig.gca(projection="3d")
+
 #plt.title('Three body problem')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
 system_plot("data_orbits.txt")
-plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 4,fancybox=True,fontsize=10)
-plt.show()
+#plt.show()

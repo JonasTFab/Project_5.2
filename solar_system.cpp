@@ -307,7 +307,7 @@ public:
         }
 
           rad = sqrt(pow(pos(3*i),2) + pow(pos(3*i+1),2) + pow(pos(3*i+2),2));
-          if (abs(rad) > 1e-6){
+          if (fabs(rad) > 1e-6){
             fixed_force = GM_fixed/pow(rad,3);
           }
 
@@ -330,7 +330,7 @@ public:
           }
 
           rad = sqrt(pow(pos(3*i),2) + pow(pos(3*i+1),2) + pow(pos(3*i+2),2));
-          if (abs(rad) > 1e-3){
+          if (fabs(rad) > 1e-3){
             fixed_force = GM_fixed/pow(rad,3);
           }
 
