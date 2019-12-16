@@ -98,6 +98,7 @@ public:
     I = merc_y*merc_vz - merc_vy*merc_z;
     J = merc_x*merc_vz - merc_vx*merc_z;
     K = merc_x*merc_vy - merc_vx*merc_y;
+
     l = sqrt(I*I + J*J + K*K);
     merc_a = 3*GM*l*l / (c*c*pow(distance,5));
   }
@@ -118,7 +119,7 @@ public:
 
       r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
       a = GM / (r*r*r);
-      if (merc_peri == 1){mercury_perihelion(r,x(i),y(i),z(i),vx(i),vy(i),vz(i));}
+      if (merc_peri == 1){mercury_perihelion(r,x(i-1),y(i-1),z(i-1),vx(i-1),vy(i-1),vz(i-1));}
       ax_new = -(a+merc_a) * x(i);
       ay_new = -(a+merc_a) * y(i);
       az_new = -(a+merc_a) * z(i);
@@ -171,14 +172,14 @@ public:
     dt = tmax/N;
     ofile.open(filename);
     ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
-
-    for (int i=0; i<N; i++){
+    int start = N/100*99;
+    for (int i=start; i<N; i++){
       ofile << std::setw(15) << x(i);
-      ofile << std::setw(15) << y(i);
-      ofile << std::setw(15) << z(i);
-      ofile << std::setw(15) << dt*i;
-      ofile << std::setw(15) << kin_en(i);
-      ofile << std::setw(15) << pot_en(i) << "\n";
+      ofile << std::setw(15) << y(i) << "\n";
+      //ofile << std::setw(15) << z(i);
+      //ofile << std::setw(15) << dt*i;
+      //ofile << std::setw(15) << kin_en(i);
+      //sofile << std::setw(15) << pot_en(i) << "\n";
     }
     ofile.close();
 
@@ -523,8 +524,8 @@ int main(int argc, char* argv[]){
   object neptune(2.922766815589142E+01,-6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
 
   solar_system system(len);
-  system.T = time;
-  system.add_planet(mercury,"Mercury");
+  //system.T = time;
+  //system.add_planet(mercury,"Mercury");
   //system.add_planet(venus,"Venus");
   //system.add_planet(earth, "Earth");
   //system.add_planet(mars,"Mars");
@@ -532,7 +533,7 @@ int main(int argc, char* argv[]){
   //system.add_planet(saturn,"Saturn");
   //system.add_planet(uranus,"Uranus");
   //system.add_planet(neptune,"Neptune");
-  system.sun_included();
+  //system.sun_included();
   //system.sun_fixed();
   system.solve();
 
