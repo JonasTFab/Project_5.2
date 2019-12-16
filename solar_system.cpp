@@ -21,6 +21,7 @@ double const pi = 3.14159265359;
 double const AU = 149597870700;               //astronomical unit in meters
 double const c = 299792458.0*60*60*24*365/AU; //speed of light in vaccum AU/year
 
+
 //planetary properties
 double const GM = 4*pi*pi;                    // gravitational constant times one solar mass
 double const sun_rad = 0.00465047;            // in AU
@@ -100,34 +101,38 @@ public:
     K = merc_x*merc_vy - merc_vx*merc_y;
 
     l = sqrt(I*I + J*J + K*K);
-    merc_a = 3*GM*l*l / (c*c*pow(distance,5));
+    //merc_a = 3*GM*l*l / (c*c*pow(distance,5));
+    merc_a = GM*7.33*pow(10,-8)/ pow(distance,4);
+    //merc_a = GM*7.33*10e-8/ pow(distance,3);
+    std::cout << merc_a << std::endl;
+    //std::cout << 3*GM*l*l / (c*c*pow(distance,5)) << std::endl;
   }
 
   void velocity_verlet()
   {
     dt = tmax/N;
     r = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
-    a = GM / (r*r*r);
     if (merc_peri == 1){mercury_perihelion(r,x(0),y(0),z(0),vx(0),vy(0),vz(0));}      // adding general relativity to Mercury
-    ax_prev = -(a+merc_a) * x(0);
-    ay_prev = -(a+merc_a) * y(0);
-    az_prev = -(a+merc_a) * z(0);
+    a = GM / (r*r*r) + merc_a;
+    ax_prev = -a * x(0);
+    ay_prev = -a * y(0);
+    az_prev = -a * z(0);
     for (int i=1; i<N; i++){
       x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
       y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
       z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
 
       r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
-      a = GM / (r*r*r);
-      if (merc_peri == 1){mercury_perihelion(r,x(i-1),y(i-1),z(i-1),vx(i-1),vy(i-1),vz(i-1));}
-      ax_new = -(a+merc_a) * x(i);
-      ay_new = -(a+merc_a) * y(i);
-      az_new = -(a+merc_a) * z(i);
+      a = GM / (r*r*r)+merc_a;
+      ax_new = -a * x(i);
+      ay_new = -a * y(i);
+      az_new = -a * z(i);
 
       vx(i) = vx(i-1) + 0.5*dt*(ax_new + ax_prev);
       vy(i) = vy(i-1) + 0.5*dt*(ay_new + ay_prev);
       vz(i) = vz(i-1) + 0.5*dt*(az_new + az_prev);
-
+      //if (merc_peri == 1){mercury_perihelion(r,x(i),y(i),z(i),vx(i),vy(i),vz(i));}
+      //std::cout << merc_a << std::endl;
       ax_prev = ax_new;
       ay_prev = ay_new;
       az_prev = az_new;
