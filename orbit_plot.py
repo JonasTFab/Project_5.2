@@ -95,19 +95,22 @@ def data_analysis(filename):
     mercury_years = int(len(x)/(365/88))
     last_x = x[-mercury_years-1000:-1] #Slice data as to only use the last year
     last_y = y[-mercury_years-1000:-1]
+    print(len(last_y))
     #last_z = z[-mercury_years-1000:-1]
 
     r = np.sqrt(last_x**2 + last_y**2)
     perehelion_idx = np.argmin(r)
     last_perehelion = r[perehelion_idx]
     first_perehelion = 0.3075
-    perehelion_tangens = (last_y[perehelion_idx]/last_x[perehelion_idx])
+    perehelion_tangens = (last_y[perehelion_idx+54]/last_x[perehelion_idx+54])
     theta = np.arctan(perehelion_tangens)
     arcsec = np.rad2deg(theta)*3600
     print(arcsec)
     plt.plot(last_x,last_y)
-    plt.plot(last_x[perehelion_idx],last_y[perehelion_idx], 'o',color = 'r')
+    plt.plot(last_x[perehelion_idx+55],last_y[perehelion_idx+55],'o',color = 'g')
+    plt.plot(last_x[perehelion_idx],last_y[perehelion_idx],'o',color = 'r')
     plt.show()
+
 
 
 #plot("Orbit_euler.txt","euler")

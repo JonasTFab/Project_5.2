@@ -102,7 +102,8 @@ public:
 
     l = sqrt(I*I + J*J + K*K);
     //merc_a = 3*GM*l*l / (c*c*pow(distance,5));
-    merc_a = GM*7.33*pow(10,-8)/ pow(distance,4);
+    //merc_a = GM*7.33*pow(10,-8)/ pow(distance,3);
+    merc_a = 7.33*pow(10,-8);
     //merc_a = GM*7.33*10e-8/ pow(distance,3);
     std::cout << merc_a << std::endl;
     //std::cout << 3*GM*l*l / (c*c*pow(distance,5)) << std::endl;
@@ -113,7 +114,7 @@ public:
     dt = tmax/N;
     r = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
     if (merc_peri == 1){mercury_perihelion(r,x(0),y(0),z(0),vx(0),vy(0),vz(0));}      // adding general relativity to Mercury
-    a = GM / (r*r*r) + merc_a;
+    a = GM / (r*r*r)*(1 + merc_a);
     ax_prev = -a * x(0);
     ay_prev = -a * y(0);
     az_prev = -a * z(0);
