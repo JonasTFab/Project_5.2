@@ -46,11 +46,11 @@ def plot(file,method):
     ax.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
     ax.legend(); ax2.legend()
 
-
 def system_plot(file):
     planet_names = open(file,"r")
     header = planet_names.readline()
     names = header.split()
+
     data = np.loadtxt(file,skiprows=1)
     sorted_data = np.transpose(data)
     steps = len(data)
@@ -66,20 +66,20 @@ def system_plot(file):
         r = np.sqrt(x**2+y**2+z**2)
         perehelion_model = r[np.argmin(r)]
         relative_error = abs(perehelion_model-Perehelion_values[i])/Perehelion_values[i]
-        print(relative_error)
+        #print(relative_error)
 
-    """system_fig = plt.figure(3)
+    system_fig = plt.figure(3)
     system_ax = system_fig.gca(projection="3d")
     system_ax.scatter(0,0,0,"O",label="Sun",color="orange",s=50)
     system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
     system_ax.set_xbound(-5, 5)#system_ax.set_xbound(-0.001, 0.001)
     system_ax.set_ybound(-5, 5)#system_ax.set_ybound(-0.001, 0.001)
-    system_ax.set_zbound(-2, 2)#system_ax.set_zbound(-0.0001, 0.0001)"""
+    system_ax.set_zbound(-0.5, 0.5)#system_ax.set_zbound(-0.0001, 0.0001)
 
-    #for i in range(planets):
-    #    system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
-    #system_ax.set_xlabel("x (AU)"); system_ax.set_ylabel("y (AU)"); system_ax.set_zlabel("z (AU)")
-    #plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 4,fancybox=True,fontsize=10)
+    for i in range(planets):
+        system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
+    system_ax.set_xlabel("x (AU)"); system_ax.set_ylabel("y (AU)"); system_ax.set_zlabel("z (AU)")
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 0),ncol = 4,fancybox=True,fontsize=10)
 
 def data_analysis(filename):
     data = np.loadtxt(filename)
@@ -111,6 +111,30 @@ def data_analysis(filename):
     plt.plot(last_x[perehelion_idx],last_y[perehelion_idx],'o',color = 'r')
     plt.show()
 
+def energy(filename,subplot,jup_mass):
+    data = np.loadtxt(filename)
+    sorted_data = np.transpose(data)
+    steps = len(data)
+    planets = int(len(sorted_data)/2)
+
+    x = np.linspace(1,steps,steps)*25/steps
+
+    total_energy = np.zeros((2,steps))
+    total_energy[0,:] = sorted_data[0]+sorted_data[2]
+    total_energy[1,:] = sorted_data[1]+sorted_data[3]
+    E = total_energy[0,:]+total_energy[1,:]
+    E0 = E[0]
+
+    size=25
+    plt.figure(7); plt.subplot(subplot)
+    plt.plot(x,E/E0,label="Jupiter+Earth")
+    plt.xlabel("Time (yr)",fontsize=size); plt.ylabel(r"$E/E_0$ ($[m_\odot AU^2/yr^2]$)",fontsize=size)
+    plt.title(r"$10^%i$ timesteps, Jupiter mass = %.i $m_j$" % (np.log10(steps),jup_mass),fontsize=size)
+    mean_tot = sum(total_energy[0,:]+total_energy[1,:])/steps
+    plt.xlim(-0.5,25.5,size); plt.ylim(0.999999,np.amax(E/E0))
+    plt.tick_params(axis='both', which='both', labelsize=size/1.5)
+    #plt.tick_params(axis='both', which='minor', labelsize=size/2)
+    plt.grid(); plt.legend()
 
 
 #plot("Orbit_euler.txt","euler")
@@ -118,12 +142,15 @@ def data_analysis(filename):
 #plot("mercury_perihelion.txt","verlet")
 #plt.show()
 
-
-
-#plt.title('Three body problem')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
-#system_plot("data_orbits.txt")
+system_plot("data_orbits.txt")
+plt.title('Three body problem')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
 #plt.show()
 
 
+#data_analysis("mercury_perihelion.txt")
 
-data_analysis("mercury_perihelion.txt")
+# Works only for Earth-Jupiter-fixed sun system
+# at total time = 25 years
+energy("energy_1m_jupiter.txt",121,1)
+energy("energy_1000m_jupiter.txt",122,1000)
+plt.show()
