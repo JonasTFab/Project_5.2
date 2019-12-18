@@ -65,6 +65,9 @@ def system_plot(file):
         z = sorted_data[3*i+2]
         r = np.sqrt(x**2+y**2+z**2)
         perehelion_model = r[np.argmin(r)]
+        aphelion_model = r[np.argmax(r)]
+        print(aphelion_model-perehelion_model)
+        print(aphelion_model, perehelion_model)
         relative_error = abs(perehelion_model-Perehelion_values[i])/Perehelion_values[i]
         #print(relative_error)
 
@@ -95,19 +98,19 @@ def data_analysis(filename):
     mercury_years = int(len(x)/(365/88))
     last_x = x[-mercury_years-1000:-1] #Slice data as to only use the last year
     last_y = y[-mercury_years-1000:-1]
-    print(len(last_y))
     #last_z = z[-mercury_years-1000:-1]
 
     r = np.sqrt(last_x**2 + last_y**2)
     perehelion_idx = np.argmin(r)
     last_perehelion = r[perehelion_idx]
     first_perehelion = 0.3075
-    perehelion_tangens = (last_y[perehelion_idx+54]/last_x[perehelion_idx+54])
+    perehelion_tangens = (last_y[perehelion_idx-54]/last_x[perehelion_idx-54])
+    perehelion_tangens = (last_y[perehelion_idx]/last_x[perehelion_idx])
     theta = np.arctan(perehelion_tangens)
     arcsec = np.rad2deg(theta)*3600
     print(arcsec)
     plt.plot(last_x,last_y)
-    plt.plot(last_x[perehelion_idx+55],last_y[perehelion_idx+55],'o',color = 'g')
+    plt.plot(last_x[perehelion_idx-54],last_y[perehelion_idx-54],'o',color = 'g')
     plt.plot(last_x[perehelion_idx],last_y[perehelion_idx],'o',color = 'r')
     plt.show()
 
