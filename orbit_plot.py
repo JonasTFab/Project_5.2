@@ -65,16 +65,19 @@ def system_plot(file):
         z = sorted_data[3*i+2]
         r = np.sqrt(x**2+y**2+z**2)
         perehelion_model = r[np.argmin(r)]
+        aphelion_model = r[np.argmax(r)]
+        print(aphelion_model-perehelion_model)
+        print(aphelion_model, perehelion_model)
         relative_error = abs(perehelion_model-Perehelion_values[i])/Perehelion_values[i]
         print(relative_error)
 
-    """system_fig = plt.figure(3)
+    system_fig = plt.figure(3)
     system_ax = system_fig.gca(projection="3d")
     system_ax.scatter(0,0,0,"O",label="Sun",color="orange",s=50)
     system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
     system_ax.set_xbound(-5, 5)#system_ax.set_xbound(-0.001, 0.001)
     system_ax.set_ybound(-5, 5)#system_ax.set_ybound(-0.001, 0.001)
-    system_ax.set_zbound(-2, 2)#system_ax.set_zbound(-0.0001, 0.0001)"""
+    system_ax.set_zbound(-2, 2)#system_ax.set_zbound(-0.0001, 0.0001)
 
     #for i in range(planets):
     #    system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
@@ -95,19 +98,19 @@ def data_analysis(filename):
     mercury_years = int(len(x)/(365/88))
     last_x = x[-mercury_years-1000:-1] #Slice data as to only use the last year
     last_y = y[-mercury_years-1000:-1]
-    print(len(last_y))
     #last_z = z[-mercury_years-1000:-1]
 
     r = np.sqrt(last_x**2 + last_y**2)
     perehelion_idx = np.argmin(r)
     last_perehelion = r[perehelion_idx]
     first_perehelion = 0.3075
-    perehelion_tangens = (last_y[perehelion_idx+54]/last_x[perehelion_idx+54])
+    perehelion_tangens = (last_y[perehelion_idx-54]/last_x[perehelion_idx-54])
+    perehelion_tangens = (last_y[perehelion_idx]/last_x[perehelion_idx])
     theta = np.arctan(perehelion_tangens)
     arcsec = np.rad2deg(theta)*3600
     print(arcsec)
     plt.plot(last_x,last_y)
-    plt.plot(last_x[perehelion_idx+55],last_y[perehelion_idx+55],'o',color = 'g')
+    plt.plot(last_x[perehelion_idx-54],last_y[perehelion_idx-54],'o',color = 'g')
     plt.plot(last_x[perehelion_idx],last_y[perehelion_idx],'o',color = 'r')
     plt.show()
 
@@ -121,9 +124,9 @@ def data_analysis(filename):
 
 
 #plt.title('Three body problem')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
-#system_plot("data_orbits.txt")
-#plt.show()
+system_plot("data_orbits.txt")
+plt.show()
 
 
 
-data_analysis("mercury_perihelion.txt")
+#data_analysis("mercury_perihelion.txt")
