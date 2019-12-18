@@ -11,8 +11,8 @@ def plot(file,method):
     y = sorted_data[1]
     z = sorted_data[2]
     time = sorted_data[3]
-    kin_en = sorted_data[4]
-    pot_en = sorted_data[5]
+    pot_en = sorted_data[4]
+    kin_en = sorted_data[5]
 
     if method == "euler":
         col = "black"
@@ -27,9 +27,10 @@ def plot(file,method):
     ax2 = fig2.add_subplot(111); ax2.grid()
 
     ax.text2D(0.4,1,"Orbit in %.1f year" % (time[-1]),transform=ax.transAxes)
-    ax.scatter(x[0],y[0],z[0],"o",label="Earth (%s)"%meth,color=col)
-    ax.plot(x[::100],y[::100],z[::100],label="Earth path (%s)"%meth,color=col)
+    #ax.plot(x[::100],y[::100],z[::100],label="Earth path (%s)"%meth,color=col)
+    ax.plot(x,y,z,label="Earth path (%s)"%meth,color=col)
     ax.set_xlabel("x (AU)"); ax.set_ylabel("y (AU)"); ax.set_zlabel("z (AU)")
+    ax.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
 
     if (file=="mercury_perihelion.txt"):
         ax.autoscale(enable=False,axis='both')
@@ -39,11 +40,15 @@ def plot(file,method):
         ax.set_ybound(-diff, diff)
         ax.set_zbound(-diff, diff)
 
-    ax2.plot(time[::10],kin_en[::10],"--",label="Kinetic energy (%s)"%meth,color=col)
-    ax2.plot(time[::10],pot_en[::10],"-.",label="Potential energy (%s)"%meth,color=col)
-    ax2.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
-    ax2.set_xlabel("t (year)"); ax2.set_ylabel("Energy")
-    ax.scatter(0,0,0,"O",label="Sun",color="orange",s=200)
+    if (file=="orbit_euler.txt" or file=="orbit_verlet.txt"):
+        size=15
+        plt.title("Kinetic and potential energy",fontsize=size)
+        #ax2.plot(time[::10],kin_en[::10],"--",label="Kinetic energy (%s)"%meth,color=col)
+        #ax2.plot(time[::10],pot_en[::10],"-.",label="Potential energy (%s)"%meth,color=col)
+        ax2.plot(time,kin_en*1e6,"--",label="Kinetic energy (%s)"%meth,color=col)
+        ax2.plot(time,pot_en*1e6,label="Potential energy (%s)"%meth,color=col)
+        #ax2.plot(time,kin_en+pot_en,label="Total energy (%s)"%meth,color=col)
+        ax2.set_xlabel("t (year)",fontsize=size); ax2.set_ylabel(r"$Energy (\mu)$",fontsize=size)
     ax.legend(); ax2.legend()
 
 def system_plot(file):
@@ -66,18 +71,16 @@ def system_plot(file):
         r = np.sqrt(x**2+y**2+z**2)
         perehelion_model = r[np.argmin(r)]
         aphelion_model = r[np.argmax(r)]
-        print(aphelion_model-perehelion_model)
-        print(aphelion_model, perehelion_model)
         relative_error = abs(perehelion_model-Perehelion_values[i])/Perehelion_values[i]
         #print(relative_error)
 
     system_fig = plt.figure(3)
     system_ax = system_fig.gca(projection="3d")
     system_ax.scatter(0,0,0,"O",label="Sun",color="orange",s=50)
-    system_ax.autoscale(enable=False,axis='both')  #you will need this line to change the Z-axis
-    system_ax.set_xbound(-5, 5)#system_ax.set_xbound(-0.001, 0.001)
-    system_ax.set_ybound(-5, 5)#system_ax.set_ybound(-0.001, 0.001)
-    system_ax.set_zbound(-0.5, 0.5)#system_ax.set_zbound(-0.0001, 0.0001)
+    system_ax.autoscale(enable=False,axis='both')
+    system_ax.set_xbound(-5, 5)
+    system_ax.set_ybound(-5, 5)
+    system_ax.set_zbound(-0.5, 0.5)
 
     for i in range(planets):
         system_ax.plot(sorted_data[3*i],sorted_data[3*i+1],sorted_data[3*i+2],label=names[i])
@@ -91,14 +94,9 @@ def data_analysis(filename):
     x = sorted_data[0]
     y = sorted_data[1]
 
-    #z = sorted_data[2]
-    #time = sorted_data[3]
-    #kin_en = sorted_data[4]
-    #pot_en = sorted_data[5]
     mercury_years = int(len(x)/(365/88))
     last_x = x[-mercury_years-1000:-1] #Slice data as to only use the last year
     last_y = y[-mercury_years-1000:-1]
-    #last_z = z[-mercury_years-1000:-1]
 
     r = np.sqrt(last_x**2 + last_y**2)
     perehelion_idx = np.argmin(r)
@@ -139,21 +137,31 @@ def energy(filename,subplot,jup_mass):
     #plt.tick_params(axis='both', which='minor', labelsize=size/2)
     plt.grid(); plt.legend()
 
-
-#plot("Orbit_euler.txt","euler")
-#plot("Orbit_verlet.txt","verlet")
-#plot("mercury_perihelion.txt","verlet")
+# Plotting the results of using forward Euler
+# and velocity Verlet method including their energies.
+# Results of part a)
+#plot("orbit_euler.txt","euler")
+#plot("orbit_verlet.txt","verlet");plt.grid()
 #plt.show()
 
-system_plot("data_orbits.txt")
-plt.title('Three body problem')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
-#plt.show()
-
-
-#data_analysis("mercury_perihelion.txt")
 
 # Works only for Earth-Jupiter-fixed sun system
-# at total time = 25 years
-energy("energy_1m_jupiter.txt",121,1)
-energy("energy_1000m_jupiter.txt",122,1000)
-plt.show()
+# at total time = 25 years.
+# Results of part b)
+#energy("energy_1m_jupiter.txt",121,1)
+#energy("energy_1000m_jupiter.txt",122,1000)
+#plt.show()
+
+
+# Plotting the whole solar system depending on the length
+# of total time. Zoom out for all planets to appear.
+# Results of part c)
+#system_plot("data_orbits.txt")
+#plt.title('Solar system')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
+#plt.show()
+
+
+# Plotting the orbit of Mercury and also calculating
+# the perihelion precession of it.
+# Results of part d)
+data_analysis("mercury_perihelion.txt")

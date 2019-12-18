@@ -6,15 +6,11 @@
 #include <sstream>
 #include <string>
 #include <list>
-//#include "mpi.h"
 
 //For debugging:
 // compile with: g++ solar_system.cpp -o main1 -larmadillo -llapack -lblas
-// execute with ./main1 "Method(euler or verlet)" "Number of integration points" "Initial velocity" "Time period in years"
+// execute with ./main1 "Number of integration points"  "Time period in years"  "Jupiter scaling"
 
-//For paralellization
-//mpicxx  -o main_mpi.x  main.cpp -std=c++11
-//mpiexec -n 2 ./main_mpi.x
 
 std::ofstream ofile;
 std::ofstream enfile;
@@ -23,7 +19,7 @@ double const AU = 149597870700;               // astronomical unit in meters
 double const c = 299792458.0*60*60*24*365/AU; // speed of light in vaccum AU/year
 double const eps = 1e-5;                      // small error
 
-//planetary properties
+// planetary properties
 double const GM = 4*pi*pi;                    // gravitational constant times one solar mass
 double const sun_rad = 0.00465047;            // in AU
 double const M_sun = 2*pow(10,30);            // all masses are given in kilograms
@@ -42,8 +38,7 @@ private:
   double a, r, ax, ay, az, dt;
   double ax_new, ay_new, az_new, ax_prev, ay_prev, az_prev;
   double vx_half, vy_half, vz_half;
-  double merc_a = 0;
-  int merc_peri = 0;
+  double b = 0;
 public:
   double mass;
 
@@ -84,7 +79,7 @@ public:
   // functions
   void mercury_perihelion_initialize()
   {
-    merc_peri = 1;
+    b = 7.33e-8;
     x(0) = 0.3075;
     y(0) = 0;
     z(0) = 0;
@@ -93,29 +88,12 @@ public:
     vz(0) = 0;
   }
 
-  void mercury_perihelion(double distance, double merc_x, double merc_y, double merc_z,
-                                           double merc_vx, double merc_vy, double merc_vz)
-  {
-    double I,J,K,l;
-    I = merc_y*merc_vz - merc_vy*merc_z;
-    J = merc_x*merc_vz - merc_vx*merc_z;
-    K = merc_x*merc_vy - merc_vx*merc_y;
-
-    l = sqrt(I*I + J*J + K*K);
-    //merc_a = 3*GM*l*l / (c*c*pow(distance,5));
-    //merc_a = GM*7.33*pow(10,-8)/ pow(distance,3);
-    merc_a = 7.33*pow(10,-8);
-    //merc_a = GM*7.33*10e-8/ pow(distance,3);
-    //std::cout << 3*GM*l*l / (c*c*pow(distance,5)) << std::endl;
-  }
-
   void velocity_verlet()
   {
     dt = tmax/N;
     r = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
-    if (merc_peri == 1){mercury_perihelion(r,x(0),y(0),z(0),vx(0),vy(0),vz(0));}      // adding general relativity to Mercury
-    a = GM / (r*r*r)*(1 + merc_a);
-    std::cout << merc_a << std::endl;
+    // adding general relativity to Mercury (if b!=0)
+    a = GM*(1 + b) / (r*r*r);
     ax_prev = -a * x(0);
     ay_prev = -a * y(0);
     az_prev = -a * z(0);
@@ -125,7 +103,7 @@ public:
       z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
 
       r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
-      a = GM / (r*r*r)*(1+merc_a);
+      a = GM / (r*r*r)*(1+b);
       ax_new = -a * x(i);
       ay_new = -a * y(i);
       az_new = -a * z(i);
@@ -161,32 +139,31 @@ public:
 
   void kinetic_energy()
   {
-    for (int i; i<N; i++){
+    for (int i=0; i<N; i++){
       kin_en(i) = 0.5*mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
     }
   }
 
   void potential_energy()
   {
-    for (int i; i<N; i++){
+    for (int i=0; i<N; i++){
       pot_en(i) = -GM*mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
     }
   }
-
 
   void write_to_file(std::string filename)
   {
     dt = tmax/N;
     ofile.open(filename);
     ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
-    int start = N/100*99;
+    int start = 0;//N/100*99;
     for (int i=start; i<N; i++){
       ofile << std::setw(15) << x(i);
-      ofile << std::setw(15) << y(i) << "\n";
+      ofile << std::setw(15) << y(i);
       ofile << std::setw(15) << z(i);
       ofile << std::setw(15) << dt*i;
-      ofile << std::setw(15) << kin_en(i);
-      ofile << std::setw(15) << pot_en(i) << "\n";
+      ofile << std::setw(15) << pot_en(i);
+      ofile << std::setw(15) << kin_en(i) << "\n";
     }
     ofile.close();
 
@@ -313,6 +290,7 @@ public:
     return G*mass(planet1)*mass(planet2) / pow(distance(planet1,planet2),3);
   }
 
+  // solving the problem numericall with by using velocity Verlet
   void solve()
   {
     std::string fileout = "data_orbits.txt";
@@ -404,144 +382,40 @@ public:
       enfile << "\n";
     }
     ofile.close();
-
-
   }
-
 };
-
-
-
-/*
-void planet(arma::Col <double> &x, arma::Col <double> &y, arma::Col <double> &z,
-            arma::Col <double> &vx, arma::Col <double> &vy,
-            arma::Col <double> &vz, std::string method, double mass){
-  double a,r,ax,ay,az;
-
-  int n = x.n_elem;
-
-  arma::Col <double> t = arma::vec(n);
-  double tmin = 0;
-  double tmax = 5;
-  double dt = (tmax-tmin)/n;
-  for (int i=0; i<n; i++){
-    t(i)=i*dt;
-  }
-
-  double red_mass = mass/M_sun;
-  //set up vectors containing potential and kinetic energy
-  arma::Col <double> kin_en = arma::vec(n); kin_en(0) = 0.5*red_mass*(vx(0)*vx(0)+vy(0)*vy(0)+vz(0)*vz(0));
-  arma::Col <double> pot_en = arma::vec(n); pot_en(0) = -GM*red_mass/sqrt(x(0)*x(0)+y(0)*y(0)+z(0)*z(0));
-
-  if (method == "euler"){
-    //Solving ode using forward Euler
-    for (int i=1; i<n; i++){
-      r = sqrt(x(i-1)*x(i-1) + y(i-1)*y(i-1) + z(i-1)*z(i-1));
-      a = GM / (r*r*r);
-      ax = -a*x(i-1);
-      ay = -a*y(i-1);
-      az = -a*z(i-1);
-      vx(i) = vx(i-1) + ax*dt;
-      vy(i) = vy(i-1) + ay*dt;
-      vz(i) = vz(i-1) + az*dt;
-      x(i) = x(i-1) + vx(i-1)*dt;
-      y(i) = y(i-1) + vy(i-1)*dt;
-      z(i) = z(i-1) + vz(i-1)*dt;
-
-      kin_en(i) = 0.5*red_mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
-      pot_en(i) = -GM*red_mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
-    }
-    //write results to file for analysis
-    std::string fileout = "Orbit_euler.txt";
-    ofile.open(fileout);
-    ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
-    for (int i=0; i<n; i++){
-      ofile << std::setw(15) << x(i);
-      ofile << std::setw(15) << y(i);
-      ofile << std::setw(15) << z(i);
-      ofile << std::setw(15) << t(i);
-      ofile << std::setw(15) << kin_en(i);
-      ofile << std::setw(15) << pot_en(i) << "\n";
-    }
-  }
-
-  else if (method == "verlet"){
-    //Solving ode using velocity Verlet
-    double ax_new,ay_new,az_new,ax_prev,ay_prev,az_prev;
-    double vx_half,vy_half,vz_half;
-    double r0 = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
-    double a0 = GM / (r0*r0*r0);
-    ax_prev = -a0*x(0);
-    ay_prev = -a0*y(0);
-    az_prev = -a0*z(0);
-    for (int i=1; i<n; i++){
-      x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
-      y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
-      z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
-
-      r = sqrt(x(i)*x(i) + y(i)*y(i) + z(i)*z(i));
-      a = GM / (r*r*r);
-      ax_new = -a * x(i);
-      ay_new = -a * y(i);
-      az_new = -a * z(i);
-
-      vx(i) = vx(i-1) + 0.5*dt*(ax_new + ax_prev);
-      vy(i) = vy(i-1) + 0.5*dt*(ay_new + ay_prev);
-      vz(i) = vz(i-1) + 0.5*dt*(az_new + az_prev);
-
-      ax_prev = ax_new;
-      ay_prev = ay_new;
-      az_prev = az_new;
-
-
-      kin_en(i) = 0.5*red_mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
-      pot_en(i) = -GM*red_mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
-    }
-    //write results to file for analysis
-    std::string fileout = "Orbit_verlet.txt";
-    ofile.open(fileout);
-    ofile << std::setiosflags(std::ios::showpoint | std::ios::uppercase);
-    for (int i=0; i<n; i++){
-      ofile << std::setw(15) << x(i);
-      ofile << std::setw(15) << y(i);
-      ofile << std::setw(15) << z(i);
-      ofile << std::setw(15) << t(i);
-      ofile << std::setw(15) << kin_en(i);
-      ofile << std::setw(15) << pot_en(i) << "\n";
-    }
-  }
-
-  else{
-    std::cout << "You must choose either (euler) or (verlet)\n";
-    exit(1);
-    }
-  ofile.close();
-} // end of function planet()
-*/
 
 
 
 int main(int argc, char* argv[]){
 
   ofile << "\n";
-  std::string method = argv[1];
-  int len = atoi(argv[2]);        //number of integration points
-  double int_vel = atof(argv[3]); //initial velocity
-  double time = atof(argv[4]);
+  int len = atoi(argv[1]);              // number of integration points
+  double time = atof(argv[2]);          // total time in years
+  double jup_scale = atoi(argv[3]);     // scaling Jupiter (1 = 1 Jupiter mass)
   double esc_vel = sqrt(2*GM);
-  double jup_scale;
 
-/*
-  std::cout << esc_vel << "\n";
-  arma::Col <double> x = arma::vec(len); x(0)=1;
-  arma::Col <double> y = arma::vec(len); y(0)=0;
-  arma::Col <double> z = arma::vec(len); z(0)=0;
-  arma::Col <double> vx = arma::vec(len); vx(0)=0;
-  arma::Col <double> vy = arma::vec(len); vy(0)=2*pi;
-  arma::Col <double> vz = arma::vec(len); vz(0)=0;
 
-  planet(x,y,z,vx,vy,vz,method,M_earth);
-*/
+  // The earth-sun system where the sun is fixed
+  // at origin using the object class with forward Euler
+  // and velocity Verlet method. Circular orbit is found
+  // with the initial velocity to be 2*pi AU/year.
+  // See part a) in orbit_plot.py
+  /*
+  object earth_euler(1,0,0,0,2*pi/365,0,M_earth,len);
+  earth_euler.tmax = time;
+  earth_euler.euler();
+  earth_euler.kinetic_energy();
+  earth_euler.potential_energy();
+  earth_euler.write_to_file("orbit_euler.txt");
+
+  object earth_verlet(1,0,0,0,2*pi/365,0,M_earth,len);
+  earth_verlet.tmax = time;
+  earth_verlet.velocity_verlet();
+  earth_verlet.kinetic_energy();
+  earth_verlet.potential_energy();
+  earth_verlet.write_to_file("orbit_verlet.txt");
+  */
 
 
   // object( x0, y0, z0, vx0, vy0, vz0, M, points )
@@ -552,33 +426,31 @@ int main(int argc, char* argv[]){
   object venus(6.140254422268607E-01,-3.889781916531376E-01,-4.077096546312043E-02,1.070185289465133E-02,1.700477808956028E-02,-3.842439888550384E-04,M_venus,len);
   object mars(-1.485032517264654E+00, -6.306157101254950E-01, 2.322202328310920E-02,5.992165013982506E-03,-1.168365481307998E-02,-3.918498445436787E-04,M_mars,len);
   object saturn(3.685089251558515E+00,-9.335591564910553E+00,1.562158057974095E-02,4.889009775915366E-03,2.032733431539527E-03,-2.295408335647753E-04,M_saturn,len);
-  jup_scale = 1;     // increase the mass of Jupiter
   object jupiter(3.551315858851771E-01,-5.223858708443553E+00,1.375193093344411E-02,7.445397359016055E-03,8.688615308896841E-04,-1.701937692576648E-04,M_jupiter*jup_scale,len);
   object earth(2.328416719695888E-01, 9.570420225654582E-01,-4.193306777199945E-05,-1.699305780122259E-02,3.997104358502586E-03,-4.831893976607005E-07,M_earth,len);
   object uranus(1.627777749498813E+01,1.130905239963674E+01,-1.688216806579894E-01,-2.265866949228651E-03,3.047569009304266E-03,4.052178469796985E-05,M_uranus,len);
   object neptune(2.922766815589142E+01,-6.438194386201971E+00,-5.410875794296358E-01,6.618180582706258E-04,3.085812272712285E-03,-7.886168713184974E-05,M_neptune,len);
 
-
-  // The earth-sun system where the sun is fixed at origin
-  // using the object class
-  /*
-  earth.velocity_verlet();
-  earth.kinetic_energy();
-  earth.potential_energy();
-  earth.write_to_file("Orbit_verlet.txt");
-  */
-
   // Setting up the Solar System. Used in following tasks
   solar_system system;
 
-  // The Earth-Jupiter-Sun system with Sun fixed at origin
+  // The Earth-Jupiter-Sun system with Sun fixed at origin.
+  // Data is direclty stored in a seperate data file as
+  // "data_orbits.txt" and "energy.txt".
+  // See part b) in orbit_plot.py
+  /*
   system.N = len;
   system.T = time;
+  system.add_planet(earth,"Earth");
+  system.add_planet(jupiter, "Jupiter");
+  system.sun_fixed();
+  system.solve();
+  */
 
-
-  // Adding all planets in the Solar system that's
-  // been initialized through the class "object".
-  // Choose the Sun to be stationary or in motion (sun_included() or sun_fixed())
+  // Adding all planets in the Solar system that's been initialized
+  // through the class "object". Choose the Sun to be stationary
+  // or in motion (sun_included() or sun_fixed()). Data is stored.
+  // See part c) in orbit_plot.py
   /*
   system.N = len;
   system.T = time;
@@ -595,7 +467,9 @@ int main(int argc, char* argv[]){
   system.solve();
   */
 
-  // General theory of relativity correction on Mercury
+
+  // General theory of relativity correction on Mercury.
+  // See part d) in orbit_plot.py
   /*
   mercury.tmax = time;
   mercury.mercury_perihelion_initialize();
