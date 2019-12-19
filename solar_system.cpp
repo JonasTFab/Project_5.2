@@ -88,7 +88,7 @@ public:
     vz(0) = 0;
   }
 
-  void velocity_verlet()
+  void velocity_verlet() //Velocity Verlet integration scheme
   {
     dt = tmax/N;
     r = sqrt(x(0)*x(0) + y(0)*y(0) + z(0)*z(0));
@@ -97,7 +97,7 @@ public:
     ax_prev = -a * x(0);
     ay_prev = -a * y(0);
     az_prev = -a * z(0);
-    for (int i=1; i<N; i++){
+    for (int i=1; i<N; i++){                          //Main integration loop
       x(i) = x(i-1) + dt*vx(i-1) + 0.5*dt*dt*ax_prev;
       y(i) = y(i-1) + dt*vy(i-1) + 0.5*dt*dt*ay_prev;
       z(i) = z(i-1) + dt*vz(i-1) + 0.5*dt*dt*az_prev;
@@ -112,14 +112,13 @@ public:
       vy(i) = vy(i-1) + 0.5*dt*(ay_new + ay_prev);
       vz(i) = vz(i-1) + 0.5*dt*(az_new + az_prev);
       //if (merc_peri == 1){mercury_perihelion(r,x(i),y(i),z(i),vx(i),vy(i),vz(i));}
-      //std::cout << merc_a << std::endl;
       ax_prev = ax_new;
       ay_prev = ay_new;
       az_prev = az_new;
     }
   }
 
-  void euler()
+  void euler() //Forward Euler integration scheme
   {
     dt = tmax/N;
     for (int i=1; i<N; i++){
@@ -137,14 +136,14 @@ public:
     }
   }
 
-  void kinetic_energy()
+  void kinetic_energy() //returns kinetic energy
   {
     for (int i=0; i<N; i++){
       kin_en(i) = 0.5*mass*(vx(i)*vx(i)+vy(i)*vy(i)+vz(i)*vz(i));
     }
   }
 
-  void potential_energy()
+  void potential_energy() //return potential energy
   {
     for (int i=0; i<N; i++){
       pot_en(i) = -GM*mass/sqrt(x(i)*x(i)+y(i)*y(i)+z(i)*z(i));
@@ -290,7 +289,7 @@ public:
     return G*mass(planet1)*mass(planet2) / pow(distance(planet1,planet2),3);
   }
 
-  // solving the problem numericall with by using velocity Verlet
+  // solving the problem numerically using velocity Verlet
   void solve()
   {
     std::string fileout = "data_orbits.txt";
@@ -304,20 +303,20 @@ public:
     k_en = arma::vec(num_planets);
 
     ofile << std::setw(15);
-    for (auto v : planet_name)
+    for (auto v : planet_name) //save planet names as header in file
           ofile << v << std::setw(45);
     ofile << "\n";
 
 
-    for (int k=0; k<num_planets; k++){
+    for (int k=0; k<num_planets; k++){ //save initial conditions
       ofile << std::setw(15) << pos(3*k);
       ofile << std::setw(15) << pos(3*k+1);
       ofile << std::setw(15) << pos(3*k+2);
     }
     ofile << "\n";
 
-    for (int iter=0; iter<N; iter++){
-      for (int i=0; i<num_planets; i++){
+    for (int iter=0; iter<N; iter++){ //total number of integration points
+      for (int i=0; i<num_planets; i++){ //loop over all planets
         p_en(i) = -sun_fix*GM*mass(i)/sqrt(pos(3*i)*pos(3*i)+pos(3*i+1)*pos(3*i+1)+pos(3*i+2)*pos(3*i+2));
         k_en(i) = 0.5*mass(i)*(vel(3*i)*vel(3*i) + vel(3*i+1)*vel(3*i+1) + vel(3*i+2)*vel(3*i+2));
 
@@ -331,7 +330,7 @@ public:
           }
         }
 
-          rad = sqrt(pow(pos(3*i),2) + pow(pos(3*i+1),2) + pow(pos(3*i+2),2));
+          rad = sqrt(pow(pos(3*i),2) + pow(pos(3*i+1),2) + pow(pos(3*i+2),2)); //radius
           if (fabs(rad) > eps){fixed_force = GM_fixed/pow(rad,3);}
 
           ax_prev = -sum_forcex/mass(i) - fixed_force*pos(3*i);
@@ -343,7 +342,7 @@ public:
           pos(3*i+2) = pos(3*i+2) + dt*vel(3*i+2) + 0.5*dt*dt*az_prev;
 
           sum_forcex=sum_forcey=sum_forcez=0;
-          for (int j=0; j<num_planets; j++){
+          for (int j=0; j<num_planets; j++){ //sum forces from all planets
             if (i!=j){
               sum_forcex += force(i,j) * (pos(3*i) - pos(3*j));
               sum_forcey += force(i,j) * (pos(3*i+1) - pos(3*j+1));
@@ -364,14 +363,14 @@ public:
 
       if (sun_fix==0 && iter%100==0){
         total_momentum();
-        if (fabs(tot_momentum)>eps){
+        if (fabs(tot_momentum)>eps){ //aborts if the momentum is not conserved within the limits of eps
           std::cout << "Total momentum is too large! Program stopped! \n" <<
                        "Total momentum: " << tot_momentum << "       Tolerance(+/-): " << eps << std::endl;
           std::exit(0);
         }
       }
 
-      for (int k=0; k<num_planets; k++){
+      for (int k=0; k<num_planets; k++){ //write to file
         ofile << std::setw(15) << pos(3*k);
         ofile << std::setw(15) << pos(3*k+1);
         ofile << std::setw(15) << pos(3*k+2);
