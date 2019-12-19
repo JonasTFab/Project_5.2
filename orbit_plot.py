@@ -137,31 +137,31 @@ def energy(filename,subplot,jup_mass):
     #plt.tick_params(axis='both', which='minor', labelsize=size/2)
     plt.grid(); plt.legend()
 
+# Results of part a)
 # Plotting the results of using forward Euler
 # and velocity Verlet method including their energies.
-# Results of part a)
 #plot("orbit_euler.txt","euler")
 #plot("orbit_verlet.txt","verlet");plt.grid()
 #plt.show()
 
 
+# Results of part b)
 # Works only for Earth-Jupiter-fixed sun system
 # at total time = 25 years.
-# Results of part b)
 #energy("energy_1m_jupiter.txt",121,1)
 #energy("energy_1000m_jupiter.txt",122,1000)
 #plt.show()
 
 
+# Results of part c)
 # Plotting the whole solar system depending on the length
 # of total time. Zoom out for all planets to appear.
-# Results of part c)
 #system_plot("data_orbits.txt")
 #plt.title('Solar system')#,loc = 'upper center', bbox_to_anchor=(0.5, 1))
 #plt.show()
 
 
+# Results of part d)
 # Plotting the orbit of Mercury and also calculating
 # the perihelion precession of it.
-# Results of part d)
-data_analysis("mercury_perihelion.txt")
+#data_analysis("mercury_perihelion.txt")

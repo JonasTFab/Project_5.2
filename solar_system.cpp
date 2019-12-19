@@ -396,11 +396,11 @@ int main(int argc, char* argv[]){
   double esc_vel = sqrt(2*GM);
 
 
+  // Part a)
   // The earth-sun system where the sun is fixed
   // at origin using the object class with forward Euler
   // and velocity Verlet method. Circular orbit is found
   // with the initial velocity to be 2*pi AU/year.
-  // See part a) in orbit_plot.py
   /*
   object earth_euler(1,0,0,0,2*pi/365,0,M_earth,len);
   earth_euler.tmax = time;
@@ -434,10 +434,10 @@ int main(int argc, char* argv[]){
   // Setting up the Solar System. Used in following tasks
   solar_system system;
 
+  // Part b)
   // The Earth-Jupiter-Sun system with Sun fixed at origin.
   // Data is direclty stored in a seperate data file as
   // "data_orbits.txt" and "energy.txt".
-  // See part b) in orbit_plot.py
   /*
   system.N = len;
   system.T = time;
@@ -447,10 +447,10 @@ int main(int argc, char* argv[]){
   system.solve();
   */
 
+  // Part c)
   // Adding all planets in the Solar system that's been initialized
   // through the class "object". Choose the Sun to be stationary
   // or in motion (sun_included() or sun_fixed()). Data is stored.
-  // See part c) in orbit_plot.py
   /*
   system.N = len;
   system.T = time;
@@ -468,8 +468,8 @@ int main(int argc, char* argv[]){
   */
 
 
+  // Part d)
   // General theory of relativity correction on Mercury.
-  // See part d) in orbit_plot.py
   /*
   mercury.tmax = time;
   mercury.mercury_perihelion_initialize();
